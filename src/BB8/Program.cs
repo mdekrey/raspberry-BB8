@@ -1,6 +1,8 @@
-﻿using Raspberry.IO.GeneralPurpose;
+﻿using BB8.PhaseWidthModulation;
+using Raspberry.IO.GeneralPurpose;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,45 +31,33 @@ namespace BB8
             var pin2Sensor = pin2.Input();
             Console.WriteLine((int)pin2); // shows "17" to match the GPIO number
 
-            GpioConnection connection = new GpioConnection(pin2Sensor);
-            connection.PinStatusChanged += (sender, statusArgs)
-                                => Console.WriteLine("Pin changed {0}", statusArgs.Configuration.Name);
+            var pwmOutput = ((ProcessorPin)4).Output();
 
+            var connection = new GpioConnection(pin2Sensor);
+            var pwmConnection = new GpioConnection(pwmOutput);
+
+            var sw = new Stopwatch();
+            connection.PinStatusChanged += (sender, statusArgs)
+                                => Console.WriteLine("Pin changed {0}", sw.ElapsedMilliseconds);
+            sw.Start();
             try
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
+                using (var pwm = new PwmThread())
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
 
-                Task.WaitAll(Hello("1"), Hello("2"), Hello("3"), Hello("4"));
-                
-                Console.WriteLine(DateTime.Now.ToString());
+                    Console.WriteLine(DateTime.Now.ToString());
 
-                Console.ReadKey();
+                    pwm.SetPhaseWidth(pwmConnection, 0.5);
+
+                    Console.ReadKey();
+                }
             }
             finally
             {
                 connection.Close();
                 Console.ForegroundColor = originalColor;
             }
-        }
-
-        private static async Task Hello(string v)
-        {
-            await Task.Yield();
-
-            Speak(v);
-
-            Thread.Sleep(1000);
-
-            Speak(v);
-
-            await Task.Delay(1000).ConfigureAwait(false);
-
-            Speak(v);
-        }
-
-        private static void Speak(string v)
-        {
-            Console.WriteLine("Hello " + v);
         }
     }
 }

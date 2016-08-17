@@ -36,10 +36,10 @@ namespace BB8
             var connection = new GpioConnection(new GpioConnectionSettings
             {
                 PollInterval = TimeSpan.FromMilliseconds(0.001)
-            }, sensorPin, serialDataPin, serialLatchPin, serialClockPin);
-            var pwmConnection = new GpioConnection(pwmOutput);
+            }, sensorPin);
+            var outConnection = new GpioConnection(pwmOutput, serialDataPin, serialLatchPin, serialClockPin);
             connection.Open();
-            pwmConnection.Open();
+            outConnection.Open();
 
             var sw = new Stopwatch();
             connection.PinStatusChanged += (sender, statusArgs) => 
@@ -53,16 +53,16 @@ namespace BB8
             sw.Start();
             try
             {
-                var serial = new SerialDigitizer(connection, serialDataPin, serialLatchPin, serialClockPin, 8);
+                var serial = new SerialDigitizer(outConnection, serialDataPin, serialLatchPin, serialClockPin, 8);
                 using (connection)
-                using (pwmConnection)
-                using (var pwm = new PwmThread())
+                using (outConnection)
+                using (var pwm = new PwmThread(outConnection))
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
 
                     Console.WriteLine(DateTime.Now.ToString());
 
-                    pwm.SetPhaseWidth(pwmConnection, 0.8);
+                    pwm.SetPhaseWidth(pwmOutput, 0.8);
 
                     while (Console.ReadKey().Key != ConsoleKey.Enter)
                     {

@@ -11,21 +11,23 @@ namespace BB8.PhaseWidthModulation
 {
     public class PwmThread : IDisposable
     {
-        private const double phaseWidthCycleMilliseconds = 100;
+        private const double phaseWidthCycleMilliseconds = 10;
 
         private bool disposedValue = false; // To detect redundant calls
         private Thread thread;
-        private readonly ConcurrentDictionary<GpioConnection, double> phaseWidths 
-            = new ConcurrentDictionary<GpioConnection, double>(new EqualityComparer<GpioConnection, ProcessorPin>((pinA) => pinA.Pins.Single().Configuration.Pin));
+        private readonly ConcurrentDictionary<OutputPinConfiguration, double> phaseWidths 
+            = new ConcurrentDictionary<OutputPinConfiguration, double>(new EqualityComparer<OutputPinConfiguration, ProcessorPin>((pinA) => pinA.Pin));
+        private readonly GpioConnection connection;
 
-        public PwmThread()
+        public PwmThread(GpioConnection connection)
         {
+            this.connection = connection;
             thread = new Thread(RunPwmThread);
             thread.Priority = ThreadPriority.Highest;
             thread.Start();
         }
 
-        public double? GetPhaseWidth(GpioConnection pinConfig)
+        public double? GetPhaseWidth(OutputPinConfiguration pinConfig)
         {
             double phaseWidth;
             if (phaseWidths.TryGetValue(pinConfig, out phaseWidth))
@@ -35,12 +37,12 @@ namespace BB8.PhaseWidthModulation
             return null;
         }
 
-        public void SetPhaseWidth(GpioConnection pinConfig, double phaseWidth)
+        public void SetPhaseWidth(OutputPinConfiguration pinConfig, double phaseWidth)
         {
             phaseWidths.AddOrUpdate(pinConfig, phaseWidth, delegate { return phaseWidth; });
         }
 
-        public void ClearPhaseWidth(GpioConnection pinConfig)
+        public void ClearPhaseWidth(OutputPinConfiguration pinConfig)
         {
             double phaseWidth;
             phaseWidths.TryRemove(pinConfig, out phaseWidth);
@@ -53,12 +55,12 @@ namespace BB8.PhaseWidthModulation
                 var list = phaseWidths
                     .ToArray()
                     .OrderBy(e => e.Value)
-                    .Select(e => new KeyValuePair<GpioConnection, double>(e.Key, e.Value * phaseWidthCycleMilliseconds))
+                    .Select(e => new KeyValuePair<OutputPinConfiguration, double>(e.Key, e.Value * phaseWidthCycleMilliseconds))
                     .ToArray();
                 var nextIndex = 0;
                 foreach (var e in list)
-                { 
-                    e.Key[e.Key.Pins.Single().Configuration] = true;
+                {
+                    connection[e.Key] = true;
                 }
                 var sw = new Stopwatch();
                 sw.Start();
@@ -66,7 +68,7 @@ namespace BB8.PhaseWidthModulation
                 {
                     while (nextIndex < list.Length && list[nextIndex].Value < sw.ElapsedMilliseconds)
                     {
-                        list[nextIndex].Key[list[nextIndex].Key.Pins.Single().Configuration] = false;
+                        connection[list[nextIndex].Key] = false;
                         nextIndex++;
                     }
                 }

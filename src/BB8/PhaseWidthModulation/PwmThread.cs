@@ -11,7 +11,7 @@ namespace BB8.PhaseWidthModulation
 {
     public class PwmThread : IDisposable
     {
-        private const double phaseWidthCycleMilliseconds = 5000;
+        private const double phaseWidthCycleMilliseconds = 100;
 
         private bool disposedValue = false; // To detect redundant calls
         private Thread thread;
@@ -21,7 +21,7 @@ namespace BB8.PhaseWidthModulation
         public PwmThread()
         {
             thread = new Thread(RunPwmThread);
-            
+            thread.Priority = ThreadPriority.Highest;
             thread.Start();
         }
 
@@ -48,7 +48,7 @@ namespace BB8.PhaseWidthModulation
 
         private void RunPwmThread()
         {
-            while (true)
+            while (!disposedValue)
             {
                 var list = phaseWidths
                     .ToArray()
@@ -58,7 +58,6 @@ namespace BB8.PhaseWidthModulation
                 var nextIndex = 0;
                 foreach (var e in list)
                 { 
-                    Console.WriteLine("On");
                     e.Key[e.Key.Pins.Single().Configuration] = true;
                 }
                 var sw = new Stopwatch();
@@ -67,7 +66,6 @@ namespace BB8.PhaseWidthModulation
                 {
                     while (nextIndex < list.Length && list[nextIndex].Value < sw.ElapsedMilliseconds)
                     {
-                        Console.WriteLine("Off");
                         list[nextIndex].Key[list[nextIndex].Key.Pins.Single().Configuration] = false;
                         nextIndex++;
                     }

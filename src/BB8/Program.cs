@@ -38,24 +38,27 @@ namespace BB8
 
             var sw = new Stopwatch();
             connection.PinStatusChanged += (sender, statusArgs)
-                                => Console.WriteLine("Pin changed {0}", sw.ElapsedMilliseconds);
+                                => Console.Write(statusArgs.Enabled ? 1 : 0);
             sw.Start();
             try
             {
+                using (connection)
+                using (pwmConnection)
                 using (var pwm = new PwmThread())
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
 
                     Console.WriteLine(DateTime.Now.ToString());
 
-                    pwm.SetPhaseWidth(pwmConnection, 0.5);
+                    pwm.SetPhaseWidth(pwmConnection, 0.8);
 
                     Console.ReadKey();
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Ending");
                 }
             }
             finally
             {
-                connection.Close();
                 Console.ForegroundColor = originalColor;
             }
         }

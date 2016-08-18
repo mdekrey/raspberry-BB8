@@ -11,7 +11,7 @@ namespace BB8.PhaseWidthModulation
 {
     public class PwmThread : IDisposable
     {
-        private const double phaseWidthCycleMilliseconds = 10;
+        private const double phaseWidthCycleMilliseconds = 100;
 
         private bool disposedValue = false; // To detect redundant calls
         private Thread thread;

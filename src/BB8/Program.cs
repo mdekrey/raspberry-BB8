@@ -12,10 +12,11 @@ namespace BB8
     // GPIO Pins
     // 4 - 5V
     // 6 - Ground
-    // 7 - GPIO 4 - PWM motor 1
-    // 11 - GPIO 17 - Serial Data
-    // 13 - GPIO 27 - Serial Latch
-    // 15 - GPIO 22 - Clock
+    // 7 - GPIO 4 - PWM motor 1 (orange)
+    // 9 - Ground - DIR_EN (green)
+    // 11 - GPIO 17 - Serial Data (yellow)
+    // 13 - GPIO 27 - Serial Latch (blue)
+    // 15 - GPIO 22 - Clock (grey)
 
     public class Program
     {
@@ -53,21 +54,21 @@ namespace BB8
             sw.Start();
             try
             {
-                var serial = new SerialDigitizer(outConnection, serialDataPin, serialLatchPin, serialClockPin, 8);
+                var serial = new SerialDigitizer(outConnection, data: serialDataPin, latch: serialLatchPin, clock: serialClockPin, bitCount: 8);
                 using (connection)
                 using (outConnection)
-                using (var pwm = new PwmThread(outConnection))
+                //using (var pwm = new PwmThread(outConnection))
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
 
                     Console.WriteLine(DateTime.Now.ToString());
 
-                    pwm.SetPhaseWidth(pwmOutput, 0.8);
+                    //pwm.SetPhaseWidth(pwmOutput, 0.2);
 
                     while (Console.ReadKey().Key != ConsoleKey.Enter)
                     {
                         Console.WriteLine();
-                        serial.WriteData(0xaa).Wait();
+                        serial.WriteData(0xff).Wait();
                         Console.WriteLine();
                     }
                     Console.ForegroundColor = ConsoleColor.Red;

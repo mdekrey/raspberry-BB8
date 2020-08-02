@@ -2,6 +2,12 @@ panelDegrees = 35; // https://rimstar.org/science_electronics_projects/bb-8_dime
 panelRadius = radius * sin(panelDegrees);
 insertionTolerance = 0.3;
 
+visibleBoltHole = 4 / 2;
+visibleBoltOuterRadius = radius * 0.07734 / 2;
+visibleBoltCoverRadius = visibleBoltOuterRadius / 2;
+visibleBoltBezelDepth = visibleBoltOuterRadius * 0.2;
+visibleBoltBezel = visibleBoltBezelDepth;
+
 if (camlockBoltRadius * 2 + 2 > camlockNutThickness)
     warn("Camlock Bolt/Nut sizes invalid");
 
@@ -41,6 +47,7 @@ module tFrameThird() {
             tFrame();
         }
 
+        // bottom holes
         rotate([0,-90,40])
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,90])
@@ -51,6 +58,7 @@ module tFrameThird() {
         rotate([0,0,90])
         camLockSlot(boltLength=camlockBoltLength);
 
+        // adjacent tri holes
         rotate(a=-camlockOffset, v=[-1,0,1])
         rotate([0,-90,90])
         translate([0,0,-(radius - wallThickness - 0)])
@@ -74,6 +82,38 @@ module tFrameThird() {
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,-135 - rotationDifference]) // bolt rotation
         camLockSlot(boltLength=camlockBoltLength);
+
+        // outer-ring holes
+        rotate([15,0,0])
+        rotate([0,-90,panelDegrees])
+        translate([0,0,-(radius - wallThickness - 0)])
+        rotate([0,0,180]) // bolt rotation
+        camLockSlot(boltLength=camlockBoltLength);
+
+        rotate([30,0,0])
+        rotate([0,-90,panelDegrees])
+        translate([0,0,-(radius - wallThickness - 0)])
+        rotate([0,0,180]) // bolt rotation
+        camLockSlot(boltLength=camlockBoltLength);
+
+        rotate([0,-15,0])
+        rotate([90,0,-panelDegrees])
+        translate([0,0,-(radius - wallThickness - 0)])
+        rotate([0,0,90]) // bolt rotation
+        camLockSlot(boltLength=camlockBoltLength);
+
+        rotate([0,-30,0])
+        rotate([90,0,-panelDegrees])
+        translate([0,0,-(radius - wallThickness - 0)])
+        rotate([0,0,90]) // bolt rotation
+        camLockSlot(boltLength=camlockBoltLength);
+        // end outer-ring holes
+
+        // visible bolt-hole cover
+        translate([-depth + visibleBoltBezelDepth, 0, 0])
+        rotate([0, 90 - 35 / 2, 45])
+        translate([0, 0, radius])
+        visibleBoltHole();
     }
 }
 
@@ -126,14 +166,6 @@ module camlockNut() {
         translate([0,0,insertionTolerance])
         cylinder(r1=camlockRadius, r2=camlockRadius, h=camlockNutThickness, center=true);
 
-        /*intersection() {
-            rotate([0,0,-90])
-            translate([-camlockBoltRadius,-camlockBoltRadius,-camlockNutThickness / 2])
-            cube([camlockRadius * 2, camlockRadius * 2, camlockNutThickness]);
-
-            cylinder(r1=camlockInnerRadius, r2=camlockInnerRadius, h=camlockBoltRadius * 2, center=true);
-        }*/
-
         intersection() {
             union() {
                 translate([camlockRadius - camlockInnerRadius, 0, - camlockNutThickness / 2 + camlockBoltRadius])
@@ -142,7 +174,7 @@ module camlockNut() {
             }
             union() {
                 rotate([0,0,-90])
-                translate([-camlockBoltRadius,-camlockRadius,-camlockNutThickness / 2])
+                translate([-(camlockRadius*2-camlockBoltRadius),-camlockRadius,-camlockNutThickness / 2])
                 cube([camlockRadius * 2, camlockRadius * 2, camlockNutThickness]);
 
                 translate([camlockRadius - camlockInnerRadius * 2 + 2, 0, 0])
@@ -166,6 +198,14 @@ module camlockNut() {
         translate([0, 0, camlockNutThickness - 0.6 + insertionTolerance])
         cube([camlockRadius * 3, 1.2, camlockNutThickness], center=true);
     }
+}
+
+module visibleBoltHole() {
+    translate([0, 0, -visibleBoltBezelDepth])
+    cylinder(r1=visibleBoltOuterRadius - visibleBoltBezel * 2, r2=visibleBoltOuterRadius, h=visibleBoltBezelDepth * 2, $fn=$fnDetail);
+
+    translate([0, 0, -wallThickness * 2])
+    cylinder(r = visibleBoltHole, h=wallThickness * 2, $fn=$fn);
 }
 
 module warn(text)

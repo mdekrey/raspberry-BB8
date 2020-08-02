@@ -10,7 +10,7 @@ camlockNutMaxDepth = 10;
 camlockNutGripSize = 1;
 camlockBoltRadius = 2.6;
 camlockBoltLength = 40;
-fittedTolerance = 0.5;
+fittedTolerance = 0.3;
 
 include <shared.scad>;
 
@@ -23,7 +23,7 @@ include <shared.scad>;
     camlockNut();
 }
 
-difference() {
+%difference() {
     translate([-camlockNutRadius*1.5,0,0])
     cube([camlockNutRadius*3,camlockNutRadius*3,camlockNutThickness*1.5], center=true);
 
@@ -31,3 +31,8 @@ difference() {
     rotate([0, 0, -90])
     camLockSlot(20);
 }
+
+
+translate([-camlockNutRadius*1.5-insertionTolerance,0,0])
+rotate([0, 90, 0])
+camlockBolt(20);

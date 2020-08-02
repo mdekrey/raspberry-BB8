@@ -1,5 +1,6 @@
 $fnBody = 360 / 3;
 $fn = 360 / 5;
+$fnDetail = 60;
 millisPerInch = 25.4;
 radius = 253/2;
 wallThickness = 0.4 * millisPerInch;
@@ -10,7 +11,7 @@ camlockNutMaxDepth = 10;
 camlockNutGripSize = 1;
 camlockBoltRadius = 2.6;
 camlockBoltLength = 20;
-fittedTolerance = 0.5;
+fittedTolerance = 0.3;
 
 include <shared.scad>;
 tFrameThird();

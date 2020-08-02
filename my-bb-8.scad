@@ -13,9 +13,5 @@ camlockBoltLength = 40;
 fittedTolerance = 0.5;
 
 include <shared.scad>;
-// tFrameThird();
+tFrameThird();
 
-
-%rotate([0, 90, 0])
-camlockBolt();
-camlockNut();

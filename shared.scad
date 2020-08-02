@@ -44,46 +44,41 @@ module tFrameThird() {
         rotate([0,-90,40])
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,90])
-        translate([0,-camlockBoltLength/2,0]) // needs bolt of length 40
         camLockSlot(boltLength=camlockBoltLength);
 
         rotate([0,-90,50])
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,90])
-        translate([0,-camlockBoltLength/2,0]) // needs bolt of length 40
         camLockSlot(boltLength=camlockBoltLength);
 
         rotate(a=-camlockOffset, v=[-1,0,1])
         rotate([0,-90,90])
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,-45 + rotationDifference]) // bolt rotation
-        translate([0,-camlockBoltLength/2,0]) // needs bolt of length 40
         camLockSlot(boltLength=camlockBoltLength);
 
         rotate(a=-camlockOffset, v=[-1,0,1])
         rotate([0,-90,90])
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,-45 - rotationDifference]) // bolt rotation
-        translate([0,-camlockBoltLength/2,0]) // needs bolt of length 40
         camLockSlot(boltLength=camlockBoltLength);
 
         rotate(a=camlockOffset, v=[0,-1,1])
         rotate([0,-90,0])
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,-135 + rotationDifference]) // bolt rotation
-        translate([0,-camlockBoltLength/2,0]) // needs bolt of length 40
         camLockSlot(boltLength=camlockBoltLength);
 
         rotate(a=camlockOffset, v=[0,-1,1])
         rotate([0,-90,0])
         translate([0,0,-(radius - wallThickness - 0)])
         rotate([0,0,-135 - rotationDifference]) // bolt rotation
-        translate([0,-camlockBoltLength/2,0]) // needs bolt of length 40
         camLockSlot(boltLength=camlockBoltLength);
     }
 }
 
 module camLockSlot(boltLength = 50) {
+    translate([0,-boltLength/2,0])
     rotate([180, 0, 0])
     union() {
         translate([0,0,-camlockNutMaxDepth])
@@ -128,36 +123,48 @@ module camlockNut() {
     endcapOpeningRadius = camlockBoltRadius - camlockNutGripSize;
 
     difference() {
+        translate([0,0,insertionTolerance])
         cylinder(r1=camlockRadius, r2=camlockRadius, h=camlockNutThickness, center=true);
 
-        intersection() {
+        /*intersection() {
             rotate([0,0,-90])
             translate([-camlockBoltRadius,-camlockBoltRadius,-camlockNutThickness / 2])
             cube([camlockRadius * 2, camlockRadius * 2, camlockNutThickness]);
 
             cylinder(r1=camlockInnerRadius, r2=camlockInnerRadius, h=camlockBoltRadius * 2, center=true);
-        }
+        }*/
 
         intersection() {
             union() {
-                cylinder(r1=camlockInnerRadius, r2=camlockInnerRadius, h=camlockBoltRadius * 2, center=true);
+                translate([camlockRadius - camlockInnerRadius, 0, - camlockNutThickness / 2 + camlockBoltRadius])
+                cylinder(r1=camlockInnerRadius, r2=camlockInnerRadius, h=camlockNutThickness, center=true);
                 cylinder(r1=camlockRadius + 5, r2=camlockRadius + 5, h=endcapOpeningRadius * 2, center=true);
             }
             union() {
                 rotate([0,0,-90])
-                translate([0,0,-camlockNutThickness / 2])
+                translate([-camlockBoltRadius,-camlockRadius,-camlockNutThickness / 2])
                 cube([camlockRadius * 2, camlockRadius * 2, camlockNutThickness]);
 
-                rotate([90, 0, 0])
-                cylinder(r1=endcapOpeningRadius, r2=endcapOpeningRadius, h=camlockRadius + 5);
+                translate([camlockRadius - camlockInnerRadius * 2 + 2, 0, 0])
+                rotate([0, 90, 0])
+                cylinder(r1=camlockBoltRadius, r2=camlockBoltRadius, h=camlockNutRadius + camlockInnerRadius *2);
             }
         }
-        rotate([00, 90, 0])
-        cylinder(r1=camlockBoltRadius, r2=camlockBoltRadius, h=camlockRadius + 5);
+        // side bolt-hole
+        rotate([0, 90, 0])
+        cylinder(r1=camlockBoltRadius, r2=camlockBoltRadius, h=camlockNutRadius + camlockInnerRadius *2);
+
+        // bottom bolt-hole
+        translate([camlockRadius - 1.5, 0, -camlockNutThickness])
+        cube([camlockRadius * 2, camlockBoltRadius * 2, camlockNutThickness * 2], center = true);
+
+        // rotate slot for cap opening
+        rotate([0, -90, 0])
+        cylinder(r1=endcapOpeningRadius, r2=endcapOpeningRadius, h=camlockNutRadius);
 
         // screwdriver slot
-        translate([0, 0, camlockNutThickness - 1])
-        cube([1.2, camlockRadius * 2 + 5, camlockNutThickness], center=true);
+        translate([0, 0, camlockNutThickness - 0.6 + insertionTolerance])
+        cube([camlockRadius * 3, 1.2, camlockNutThickness], center=true);
     }
 }
 

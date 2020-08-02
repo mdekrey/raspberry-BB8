@@ -13,6 +13,6 @@ camlockBoltLength = 20;
 fittedTolerance = 0.5;
 
 include <shared.scad>;
-// tFrameThird();
+tFrameThird();
 
-camlockBolt();
+// camlockBolt();

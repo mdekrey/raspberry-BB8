@@ -14,6 +14,13 @@ camlockBoltLength = 20;
 fittedTolerance = 0.3;
 
 include <shared.scad>;
-tFrameThird();
+// panelRingOverlap = 0; // hidden during test renders for now
+
+// tFrameThird();
+// panelRing();
+// tFrame();
+// rotate([-90,-90,0])
+panelRingQuarter();
 
 // camlockBolt();
+// rotateLockSlot(20, 72.5574, 6, 35);

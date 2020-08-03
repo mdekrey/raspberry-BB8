@@ -7,11 +7,12 @@ visibleBoltHole = 4 / 2;
 visibleBoltOuterRadius = radius * 0.07734 / 2;
 visibleBoltCoverRadius = visibleBoltOuterRadius / 2;
 visibleBoltBezelDepth = visibleBoltOuterRadius * 0.2;
-visibleBoltBezel = visibleBoltBezelDepth;
+visibleBoltBezel = visibleBoltOuterRadius * 0.2;
 
-panelRingDegrees = panelDegrees * 0.26;
+panelRingDegrees = panelDegrees * 4/15;
 panelRingInnerRadius = radius * sin(panelDegrees - panelRingDegrees);
-panelRingOverlap = panelRadius * 0.05;
+panelRingOuterOverlap = 3;
+panelRingInnerOverlap = 1;
 panelArmDegrees = panelDegrees * 0.6;
 panelArmBoltDegrees = panelDegrees * 0.52;
 
@@ -19,47 +20,43 @@ if (camlockBoltRadius * 2 + 2 > camlockNutThickness)
     warn("Camlock Bolt/Nut sizes invalid");
 
 panelRadiusOffset = radius * cos(panelDegrees);
+panelRotateLockOffset = 5;
+rotateLockDegrees = 6;
 
-module bodySphere() {
+module bodySphere(additionalWallThickness = 0) {
     difference() {
         sphere(radius, $fn=$fnBody);
-        sphere(radius - wallThickness, $fn=$fn);
+        sphere(radius - wallThickness - additionalWallThickness, $fn=$fn);
     };
 }
 
 module panelRing() {
     intersection() {
-        bodySphere();
+        bodySphere(additionalWallThickness = cos(panelDegrees) * maxLip);
 
         difference() {
             union() {
-                translate([0,0, (radius) * cos(panelDegrees) - wallThickness + maxLip])
-                cylinder(r=panelRadius - insertionTolerance - panelRingOverlap, h=radius * 2);
+                translate([0,0, (radius) * cos(panelDegrees) - wallThickness])
+                cylinder(r=panelRadius - insertionTolerance - panelRingOuterOverlap, h=radius * 2);
                 translate([0,0,radius + cos(panelDegrees) * radius])
-                cube([(panelRadius - insertionTolerance + panelRingOverlap) * 2, (panelRadius - insertionTolerance + panelRingOverlap) * 2, radius * 2], center=true);
+                cube([(panelRadius - insertionTolerance + panelRingOuterOverlap) * 2, (panelRadius - insertionTolerance + panelRingOuterOverlap) * 2, radius * 2], center=true);
             }
             intersection() {
-                union() {
-                    //cylinder(r=panelRingInnerRadius, h=radius * sin(90 - panelDegrees + panelRingDegrees) - wallThickness / 2);
-
-                    cylinder(r=panelRingInnerRadius - panelRingOverlap, h=radius * 2);
-                }
+                cylinder(r=panelRingInnerRadius, h=radius * 2);
 
                 difference() {
                     cube([radius*2,radius*2,radius*2], center=true);
 
-                    rotate([0,0,-30])
+                    rotate([0,0,-30+panelRotateLockOffset+rotateLockDegrees])
                     linear_extrude(height=radius)
                     import("panel-x.svg", center=true, dpi=panelRingInnerRadius*.87);
-                    echo(millisPerInch*178/panelRingInnerRadius/2);
-                    echo(panelRingInnerRadius);
                 }
 
             }
 
             intersection() {
                 sphere(radius - wallThickness/2+insertionTolerance, $fn=$fn);
-                cylinder(r=panelRingInnerRadius, h=radius);
+                cylinder(r=panelRingInnerRadius + panelRingInnerOverlap + insertionTolerance, h=radius);
             }
         }
     }
@@ -71,21 +68,21 @@ module tFrame() {
         bodySphere();
 
         rotate([90, 0, 0])
-        cylinder(r1=panelRadius - panelRingOverlap, r2=panelRadius - panelRingOverlap, h=radius * 2, center=true);
+        cylinder(r1=panelRadius - panelRingOuterOverlap, r2=panelRadius - panelRingOuterOverlap, h=radius * 2, center=true);
         rotate([0, 90, 0])
-        cylinder(r1=panelRadius - panelRingOverlap, r2=panelRadius - panelRingOverlap, h=radius * 2, center=true);
-        cylinder(r1=panelRadius - panelRingOverlap, r2=panelRadius - panelRingOverlap, h=radius * 2, center=true);
+        cylinder(r1=panelRadius - panelRingOuterOverlap, r2=panelRadius - panelRingOuterOverlap, h=radius * 2, center=true);
+        cylinder(r1=panelRadius - panelRingOuterOverlap, r2=panelRadius - panelRingOuterOverlap, h=radius * 2, center=true);
 
         translate([0,0,radius + cos(panelDegrees) * radius - insertionTolerance])
-        cube([(panelRadius + panelRingOverlap) * 2, (panelRadius + panelRingOverlap) * 2, radius * 2], center=true);
+        cube([(panelRadius + panelRingOuterOverlap) * 2, (panelRadius + panelRingOuterOverlap) * 2, radius * 2], center=true);
 
         rotate([-90, 0, 0])
         translate([0,0,radius + cos(panelDegrees) * radius - insertionTolerance])
-        cube([(panelRadius + panelRingOverlap) * 2, (panelRadius + panelRingOverlap) * 2, radius * 2], center=true);
+        cube([(panelRadius + panelRingOuterOverlap) * 2, (panelRadius + panelRingOuterOverlap) * 2, radius * 2], center=true);
 
         rotate([0, 90, 0])
         translate([0,0,radius + cos(panelDegrees) * radius - insertionTolerance])
-        cube([(panelRadius + panelRingOverlap) * 2, (panelRadius + panelRingOverlap) * 2, radius * 2], center=true);
+        cube([(panelRadius + panelRingOuterOverlap) * 2, (panelRadius + panelRingOuterOverlap) * 2, radius * 2], center=true);
     }
 }
 
@@ -170,7 +167,7 @@ module tFrameThird() {
 
 module panelRingQuarter() {
     panelRingCenterDegrees = (panelDegrees - panelRingDegrees / 2);
-    endHoleOffset = 180-panelDegrees + panelRingDegrees *0.6;
+    endHoleOffset = 180-panelDegrees + panelRingDegrees *0.85;
     difference() {
         intersection() {
             cube([radius, radius, radius]);
@@ -178,26 +175,23 @@ module panelRingQuarter() {
             panelRing();
         }
 
-        // end holes
-        rotate([endHoleOffset,0,0])
-        translate([0,0,-(radius - wallThickness - 0)])
-        rotate([0,0,90]) // bolt rotation
-        camLockSlot(boltLength=camlockBoltLength);
-
-        rotate([endHoleOffset,0,-90])
-        translate([0,0,-(radius - wallThickness - 0)])
-        rotate([0,0,-90]) // bolt rotation
-        camLockSlot(boltLength=camlockBoltLength);
+        // end holes - TODO
+        for (end = [-1 : 2 : 2]) {
+            rotate([endHoleOffset,0,-45 + 45 * end])
+            translate([0,0,-(radius - camlockBoltRadius - 1)])
+            rotate([0,90*end,90*end]) // bolt rotation
+            camLockSlot(boltLength=camlockBoltLength);
+        }
 
         // rotate lock holes
-        for(loop = [5 : 15 : 90]) {
+        for(loop = [panelRotateLockOffset : 15 : 90]) {
             rotate([0,0,loop])
             translate([0,0, radius * cos(panelDegrees)])
-            rotateLockSlot(boltLength=camlockBoltLength, radius = panelRadius, angle = 6, downwardAngle = panelDegrees);
+            rotateLockSlot(boltLength=camlockBoltLength, radius = panelRadius, angle = rotateLockDegrees, downwardAngle = panelDegrees);
         }
 
         // visible bolt
-        rotate([0, panelArmBoltDegrees, 15])
+        rotate([0, panelArmBoltDegrees, 15+panelRotateLockOffset+rotateLockDegrees])
         translate([0, 0, radius])
         rotate([0, 0, 0])
         visibleBoltHole();
@@ -205,27 +199,30 @@ module panelRingQuarter() {
 }
 
 module rotateLockSlot(boltLength, radius, angle, downwardAngle) {
-    translate([0,0,camlockNutThickness * -1])
+    offset = -wallThickness + camlockNutThickness * 0.5;
+    yOffset = offset * cos(downwardAngle);
+    xOffset = offset * sin(downwardAngle);
+    translate([0,0,yOffset])
     union() {
         rotate([0,90,angle])
-        translate([0, 0, radius])
+        translate([0, 0, radius+xOffset])
         rotate([0,downwardAngle,0])
         cylinder(r=camlockBoltRadius, h=boltLength, center=true);
 
         rotate([0,90,0])
-        translate([0, 0, radius])
+        translate([0, 0, radius+xOffset])
         rotate([0,downwardAngle,0])
         cylinder(r=camlockBoltRadius, h=boltLength, center=true);
 
         rotate_extrude(angle = angle, $fn=$fn) {
-            translate([radius,0])
+            translate([radius+xOffset,0])
             rotate(-downwardAngle)
             translate([- boltLength/2, -camlockBoltRadius])
             square([boltLength, 2*camlockBoltRadius]);
         }
 
         rotate([0,90,0])
-        translate([0, 0, radius])
+        translate([0, 0, radius+xOffset])
         rotate([0,downwardAngle,0])
         translate([camlockBoltRadius + wallThickness/2, 0, 0])
         cube([camlockBoltRadius*2 + wallThickness,camlockBoltRadius*2, boltLength], center=true);
@@ -251,7 +248,6 @@ module camlockBolt(boltLength = camlockBoltLength) {
     boltRadius = camlockBoltRadius - insertionTolerance / 2;
     endcapConnectorRadius = boltRadius - camlockNutGripSize;
     bezel = endcapLength * 0.25;
-    echo(endcapLength);
 
     cylinder(r1=endcapConnectorRadius, r2=endcapConnectorRadius, h=boltLength);
 

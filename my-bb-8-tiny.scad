@@ -17,10 +17,12 @@ include <shared.scad>;
 // panelRingOverlap = 0; // hidden during test renders for now
 
 // tFrameThird();
-// panelRing();
+//%translate([0,0, -radius * cos(panelDegrees)]) panelRing();
 // tFrame();
 // rotate([-90,-90,0])
+//translate([0,0, -radius * cos(panelDegrees)]) 
 panelRingQuarter();
 
-// camlockBolt();
-// rotateLockSlot(20, 72.5574, 6, 35);
+// camlockBolt(15);
+// cylinder(r=camlockBoltRadius - insertionTolerance / 2, h=15);
+//rotateLockSlot(20, 72.5574, 6, 35);

@@ -4,7 +4,7 @@ $fnDetail = 60;
 millisPerInch = 25.4;
 radius = 253;
 wallThickness = 0.5 * millisPerInch;
-camlockNutRadius = 0.25 * millisPerInch;
+camlockNutRadius = 2.6;
 camlockNutThickness = wallThickness * 0.6;
 camlockNutWallThickness = 1.6;
 camlockNutMaxDepth = 10;
@@ -12,7 +12,9 @@ camlockNutGripSize = 1;
 camlockBoltRadius = 2.6;
 camlockBoltLength = 25;
 fittedTolerance = 0.3;
+pinRadius = camlockBoltRadius;
+pinLength = camlockBoltLength;
 
 include <shared.scad>;
-tFrameThird();
-
+// tFrameThird();
+panelRingQuarter();

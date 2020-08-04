@@ -12,17 +12,19 @@ camlockNutGripSize = 1;
 camlockBoltRadius = 2.6;
 camlockBoltLength = 20;
 fittedTolerance = 0.3;
+pinRadius = 1.5;
+pinLength = 15;
 
 include <shared.scad>;
 // panelRingOverlap = 0; // hidden during test renders for now
 
-// tFrameThird();
+tFrameThird();
 //%translate([0,0, -radius * cos(panelDegrees)]) panelRing();
 // tFrame();
 // rotate([-90,-90,0])
 //translate([0,0, -radius * cos(panelDegrees)]) 
-panelRingQuarter();
+// panelRingQuarter();
 
 // camlockBolt(15);
-// cylinder(r=camlockBoltRadius - insertionTolerance / 2, h=15);
+// rotate([90,0,0]) cylinder(r=pinRadius, h=pinLength);
 //rotateLockSlot(20, 72.5574, 6, 35);

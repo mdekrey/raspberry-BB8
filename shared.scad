@@ -49,7 +49,7 @@ module panelRing() {
 
                     rotate([0,0,-30+panelRotateLockOffset+rotateLockDegrees])
                     linear_extrude(height=radius)
-                    import("panel-x.svg", center=true, dpi=panelRingInnerRadius*.87);
+                    import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
                 }
 
             }
@@ -167,7 +167,7 @@ module tFrameThird() {
 
 module panelRingQuarter() {
     panelRingCenterDegrees = (panelDegrees - panelRingDegrees / 2);
-    endHoleOffset = 180-panelDegrees + panelRingDegrees *0.85;
+    endHoleOffset = 180-panelDegrees + panelRingDegrees *0.625;
     difference() {
         intersection() {
             cube([radius, radius, radius]);
@@ -175,12 +175,12 @@ module panelRingQuarter() {
             panelRing();
         }
 
-        // end holes - TODO
+        // end holes
         for (end = [-1 : 2 : 2]) {
             rotate([endHoleOffset,0,-45 + 45 * end])
-            translate([0,0,-(radius - camlockBoltRadius - 1)])
-            rotate([0,90*end,90*end]) // bolt rotation
-            camLockSlot(boltLength=camlockBoltLength);
+            translate([0,0,-(radius - camlockNutThickness)])
+            rotate([0,90*end,0]) // bolt rotation
+            cylinder(r=pinRadius + insertionTolerance / 2, h=pinLength, center=true);
         }
 
         // rotate lock holes
@@ -207,25 +207,25 @@ module rotateLockSlot(boltLength, radius, angle, downwardAngle) {
         rotate([0,90,angle])
         translate([0, 0, radius+xOffset])
         rotate([0,downwardAngle,0])
-        cylinder(r=camlockBoltRadius, h=boltLength, center=true);
+        cylinder(r=(camlockBoltRadius + insertionTolerance / 2), h=boltLength, center=true);
 
         rotate([0,90,0])
         translate([0, 0, radius+xOffset])
         rotate([0,downwardAngle,0])
-        cylinder(r=camlockBoltRadius, h=boltLength, center=true);
+        cylinder(r=(camlockBoltRadius + insertionTolerance / 2), h=boltLength, center=true);
 
         rotate_extrude(angle = angle, $fn=$fn) {
             translate([radius+xOffset,0])
             rotate(-downwardAngle)
-            translate([- boltLength/2, -camlockBoltRadius])
-            square([boltLength, 2*camlockBoltRadius]);
+            translate([- boltLength/2, -(camlockBoltRadius + insertionTolerance / 2)])
+            square([boltLength, 2*(camlockBoltRadius + insertionTolerance / 2)]);
         }
 
         rotate([0,90,0])
         translate([0, 0, radius+xOffset])
         rotate([0,downwardAngle,0])
-        translate([camlockBoltRadius + wallThickness/2, 0, 0])
-        cube([camlockBoltRadius*2 + wallThickness,camlockBoltRadius*2, boltLength], center=true);
+        translate([(camlockBoltRadius + insertionTolerance / 2) + wallThickness/2, 0, 0])
+        cube([(camlockBoltRadius + insertionTolerance / 2)*2 + wallThickness,(camlockBoltRadius + insertionTolerance / 2)*2, boltLength], center=true);
     }
 }
 

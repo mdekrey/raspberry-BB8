@@ -9,7 +9,7 @@ camlockNutThickness = wallThickness*0.7;
 camlockNutWallThickness = 1.6;
 camlockNutMaxDepth = 10;
 camlockNutGripSize = 1;
-camlockBoltRadius = 2.6;
+camlockBoltRadius = 2.5;
 camlockBoltLength = 20;
 fittedTolerance = 0.3;
 pinRadius = 1.5;
@@ -25,6 +25,12 @@ tFrameThird();
 //translate([0,0, -radius * cos(panelDegrees)]) 
 // panelRingQuarter();
 
-// camlockBolt(15);
-// rotate([90,0,0]) cylinder(r=pinRadius, h=pinLength);
+// camlockBolt(20);
+// diagonal bolt makes the bolt stronger from perpendicular sheer strength
+// while still remaining easy to print
+*intersection() {
+    rotate([-15, 0, 0]) translate([camlockBoltRadius, camlockBoltRadius, 0]) bolt();
+    cube([camlockBoltLength,camlockBoltLength,camlockBoltLength]);
+}
+// rotate([90,0,0]) pin();
 //rotateLockSlot(20, 72.5574, 6, 35);

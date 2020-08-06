@@ -9,12 +9,12 @@ camlockNutThickness = wallThickness * 0.6;
 camlockNutWallThickness = 1.6;
 camlockNutMaxDepth = 10;
 camlockNutGripSize = 1;
-camlockBoltRadius = 2.6;
+camlockBoltRadius = 2.5;
 camlockBoltLength = 25;
 fittedTolerance = 0.3;
 pinRadius = camlockBoltRadius;
 pinLength = camlockBoltLength;
 
 include <shared.scad>;
-// tFrameThird();
-panelRingQuarter();
+tFrameThird();
+// panelRingQuarter();

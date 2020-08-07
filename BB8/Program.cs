@@ -1,8 +1,8 @@
-﻿using BB8.PhaseWidthModulation;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using Unosquare.RaspberryIO;
+using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
 
 namespace BB8
@@ -26,10 +26,15 @@ namespace BB8
 
             //var sensorPin = Pi.Gpio[18];
 
-            var pwmOutput = Pi.Gpio[4];
+            var pwmOutput = (GpioPin)Pi.Gpio[4];
             var serialDataPin = Pi.Gpio[17];
             var serialLatchPin = Pi.Gpio[27];
             var serialClockPin = Pi.Gpio[22];
+
+            pwmOutput.PinMode = GpioPinDriveMode.PwmOutput;
+            serialDataPin.PinMode = GpioPinDriveMode.Output;
+            serialLatchPin.PinMode = GpioPinDriveMode.Output;
+            serialClockPin.PinMode = GpioPinDriveMode.Output;
 
             //var connection = new GpioConnection(new GpioConnectionSettings
             //{
@@ -51,43 +56,41 @@ namespace BB8
             try
             {
                 var serial = new SerialDigitizer(data: serialDataPin, latch: serialLatchPin, clock: serialClockPin, bitCount: 8);
-                using (var pwm = new PwmThread())
+                Console.ForegroundColor = ConsoleColor.Yellow;
+
+                Console.WriteLine(DateTime.Now.ToString());
+
+                double pw = 1;
+                pwmOutput.PwmRegister = (int)(pwmOutput.PwmRange * pw);
+                ConsoleKey key;
+                while ((key = Console.ReadKey().Key) != ConsoleKey.Enter)
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-
-                    Console.WriteLine(DateTime.Now.ToString());
-
-                    double pw = 1;
-                    pwm.SetPhaseWidth(pwmOutput, pw);
-                    ConsoleKey key;
-                    while ((key = Console.ReadKey().Key) != ConsoleKey.Enter)
+                    if (key == ConsoleKey.LeftArrow)
                     {
-                        if (key == ConsoleKey.LeftArrow)
-                        {
-                            serial.WriteData(2).Wait();
-                        }
-                        else if (key == ConsoleKey.RightArrow)
-                        {
-                            serial.WriteData(0x10).Wait();
-                        }
-                        else if (key == ConsoleKey.DownArrow)
-                        {
-                            pwm.SetPhaseWidth(pwmOutput, pw -= 0.01);
-                        }
-                        else if (key == ConsoleKey.UpArrow)
-                        {
-                            pwm.SetPhaseWidth(pwmOutput, pw += 0.01);
-                        }
-                        Console.WriteLine(pw);
+                        serial.WriteData(2).Wait();
                     }
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Ending");
-
-                    serial.WriteData(0).Wait();
-                    // Give the Pi the time to process the signal so it actually shuts down
-                    Thread.Sleep(1000);
-
+                    else if (key == ConsoleKey.RightArrow)
+                    {
+                        serial.WriteData(0x10).Wait();
+                    }
+                    else if (key == ConsoleKey.DownArrow)
+                    {
+                        pw = Math.Max(0, pw - 0.01);
+                        pwmOutput.PwmRegister = (int)(pwmOutput.PwmRange * pw);
+                    }
+                    else if (key == ConsoleKey.UpArrow)
+                    {
+                        pw = Math.Min(1, pw + 0.01);
+                        pwmOutput.PwmRegister = (int)(pwmOutput.PwmRange * pw);
+                    }
+                    Console.WriteLine(pw);
                 }
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Ending");
+
+                serial.WriteData(0).Wait();
+                // Give the Pi the time to process the signal so it actually shuts down
+                Thread.Sleep(1000);
             }
             finally
             {

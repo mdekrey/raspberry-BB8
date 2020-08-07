@@ -1,4 +1,4 @@
-$fnBody = 360 / 3;
+$fnBody = 360 / 2;
 $fn = 360/5;
 $fnDetail = 60;
 millisPerInch = 25.4;
@@ -14,6 +14,9 @@ camlockBoltLength = 25;
 fittedTolerance = 0.3;
 pinRadius = camlockBoltRadius;
 pinLength = camlockBoltLength;
+adjacentCamlockOffsetStart = 7.5;
+adjacentCamlockOffsetStep = 7.5;
+adjacentCamlockOffsetMax = 20;
 
 include <shared.scad>;
 tFrameThird();

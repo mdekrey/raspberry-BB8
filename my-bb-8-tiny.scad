@@ -14,16 +14,19 @@ camlockBoltLength = 20;
 fittedTolerance = 0.3;
 pinRadius = 1.5;
 pinLength = 15;
+adjacentCamlockOffsetStart = 7.5;
+adjacentCamlockOffsetStep = 20;
+adjacentCamlockOffsetMax = 20;
 
 include <shared.scad>;
 // panelRingOverlap = 0; // hidden during test renders for now
 
 tFrameThird();
-//%translate([0,0, -radius * cos(panelDegrees)]) panelRing();
-// tFrame();
+*translate([0,0, -radius * cos(panelDegrees)]) panelRing();
+*tFrame();
 // rotate([-90,-90,0])
 //translate([0,0, -radius * cos(panelDegrees)]) 
-// panelRingQuarter();
+*panelRingQuarter();
 
 // camlockBolt(20);
 // diagonal bolt makes the bolt stronger from perpendicular sheer strength

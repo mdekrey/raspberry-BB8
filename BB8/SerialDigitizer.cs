@@ -1,9 +1,9 @@
-﻿using Raspberry.IO.GeneralPurpose;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Unosquare.RaspberryIO.Abstractions;
 
 namespace BB8
 {
@@ -14,14 +14,12 @@ namespace BB8
         const int sleepDelay = 1;
 
         private readonly int bitCount;
-        private readonly OutputPinConfiguration clockPin;
-        private readonly OutputPinConfiguration dataPin;
-        private readonly OutputPinConfiguration latchPin;
-        private readonly GpioConnection connection;
+        private readonly IGpioPin clockPin;
+        private readonly IGpioPin dataPin;
+        private readonly IGpioPin latchPin;
 
-        public SerialDigitizer(GpioConnection connection, OutputPinConfiguration data, OutputPinConfiguration clock, OutputPinConfiguration latch, int bitCount)
+        public SerialDigitizer(IGpioPin data, IGpioPin clock, IGpioPin latch, int bitCount)
         {
-            this.connection = connection;
             this.dataPin = data;
             this.clockPin = clock;
             this.latchPin = latch;
@@ -33,17 +31,17 @@ namespace BB8
             var result = new Task(async () =>
             {
                 await Task.Yield();
-                connection[latchPin] = false;
+                latchPin.Write(false);
                 Thread.Sleep(sleepDelay);
                 for (int bit = bitCount - 1; bit >= 0; --bit)
                 {
-                    connection[dataPin] = (data & (1 << bit)) != 0;
-                    connection[clockPin] = true;
+                    dataPin.Write((data & (1 << bit)) != 0);
+                    clockPin.Write(true);
                     Thread.Sleep(sleepDelay);
-                    connection[clockPin] = false;
+                    clockPin.Write(false);
                     Thread.Sleep(sleepDelay);
                 }
-                connection[latchPin] = true;
+                latchPin.Write(true);
                 Thread.Sleep(sleepDelay);
             });
             result.Start();

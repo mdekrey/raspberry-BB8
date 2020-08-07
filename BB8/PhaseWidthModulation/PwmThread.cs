@@ -1,33 +1,38 @@
-﻿using Raspberry.IO.GeneralPurpose;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Unosquare.RaspberryIO.Abstractions;
 
 namespace BB8.PhaseWidthModulation
 {
+    /// <summary>
+    /// Creates a constantly running thread that controls the given GPIO pins
+    /// for phase-width modulation. That is, given a 
+    /// `phaseWidthCycleMilliseconds` of 10, setting a `phaseWidth` on a pin to
+    /// 0.5, it will be on for 5ms followed by 5ms off being off.
+    /// </summary>
     public class PwmThread : IDisposable
     {
-        private const double phaseWidthCycleMilliseconds = 10;
+        private readonly double phaseWidthCycleMilliseconds = 10;
 
         private bool disposedValue = false; // To detect redundant calls
         private Thread thread;
-        private readonly ConcurrentDictionary<OutputPinConfiguration, double> phaseWidths 
-            = new ConcurrentDictionary<OutputPinConfiguration, double>(new EqualityComparer<OutputPinConfiguration, ProcessorPin>((pinA) => pinA.Pin));
-        private readonly GpioConnection connection;
+        private readonly ConcurrentDictionary<IGpioPin, double> phaseWidths 
+            = new ConcurrentDictionary<IGpioPin, double>(new EqualityComparer<IGpioPin, int>((pinA) => pinA.BcmPinNumber));
 
-        public PwmThread(GpioConnection connection)
+        public PwmThread(double phaseWidthCycleMilliseconds = 10)
         {
-            this.connection = connection;
+            this.phaseWidthCycleMilliseconds = phaseWidthCycleMilliseconds;
             thread = new Thread(RunPwmThread);
             thread.Priority = ThreadPriority.Highest;
             thread.Start();
         }
 
-        public double? GetPhaseWidth(OutputPinConfiguration pinConfig)
+        public double? GetPhaseWidth(IGpioPin pinConfig)
         {
             double phaseWidth;
             if (phaseWidths.TryGetValue(pinConfig, out phaseWidth))
@@ -37,41 +42,41 @@ namespace BB8.PhaseWidthModulation
             return null;
         }
 
-        public void SetPhaseWidth(OutputPinConfiguration pinConfig, double phaseWidth)
+        public void SetPhaseWidth(IGpioPin pinConfig, double phaseWidth)
         {
             phaseWidths.AddOrUpdate(pinConfig, phaseWidth, delegate { return phaseWidth; });
         }
 
-        public void ClearPhaseWidth(OutputPinConfiguration pinConfig)
+        public void ClearPhaseWidth(IGpioPin pinConfig)
         {
-            double phaseWidth;
-            phaseWidths.TryRemove(pinConfig, out phaseWidth);
+            phaseWidths.TryRemove(pinConfig, out _);
         }
 
         private void RunPwmThread()
         {
+            var sw = new Stopwatch();
             while (!disposedValue)
             {
                 var list = phaseWidths
                     .ToArray()
                     .OrderBy(e => e.Value)
-                    .Select(e => new KeyValuePair<OutputPinConfiguration, double>(e.Key, e.Value * phaseWidthCycleMilliseconds))
+                    .Select(e => (e.Key, Value: e.Value * phaseWidthCycleMilliseconds))
                     .ToArray();
                 var nextIndex = 0;
                 foreach (var e in list)
                 {
-                    connection[e.Key] = true;
+                    e.Key.Write(true);
                 }
-                var sw = new Stopwatch();
-                sw.Start();
+                sw.Restart();
                 while (sw.ElapsedMilliseconds < phaseWidthCycleMilliseconds)
                 {
                     while (nextIndex < list.Length && list[nextIndex].Value < sw.ElapsedMilliseconds)
                     {
-                        connection[list[nextIndex].Key] = false;
+                        list[nextIndex].Key.Write(false);
                         nextIndex++;
                     }
                 }
+                sw.Stop();
             }
         }
 

@@ -8,22 +8,15 @@ I'm using:
 
 * Raspberry Pi 3 model B
 
-    ![GPIO out for Raspberry Pi](http://i.stack.imgur.com/yWGmW.png)
+    ![GPIO out for Raspberry Pi](./schematics/pi3modelB.png)
 
-* OSEPP Motor and Servo Shield v1.0 http://osepp.com/wp-content/uploads/2013/07/OSEPP_motor_shield_v1-0.pdf, which has on it
-  * a 74x595 chip https://www.nxp.com/documents/data_sheet/74HC_HCT595.pdf
-  * two L293D chips http://www.ti.com/lit/ds/symlink/l293.pdf
+* OSEPP Motor and Servo Shield v1.0
 
-## Preparing the Raspberry Pi
+    ![OSEPP Motor and Servo Shield v1.0 Schematic](./schematics/OSEPP_motor_shield_v1-0.svg)
 
-First, a few things need to be installed on the Pi. This is assuming Raspbian.
+## Building
 
-    sudo apt-get update
-    sudo apt-get upgrade
-    sudo apt-get install mono-complete
-    sudo apt-get install libmono-system-core4.0-cil
-
-Package the BB8 project in this repository using `dotnet`. This has been tested from Windows.
+Package the BB8 project in this repository using `dotnet`.
 
     dotnet publish
 
@@ -31,5 +24,5 @@ Copy the "Windows" assemblies from `\src\BB8\bin\Debug\net46\win7-x64` via SFTP 
 
 Run the project via SUDO:
 
-    sudo mono BB8.exe
+    sudo BB8.exe
 

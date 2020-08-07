@@ -26,12 +26,15 @@ namespace BB8
 
             //var sensorPin = Pi.Gpio[18];
 
-            var pwmOutput = (GpioPin)Pi.Gpio[4];
+            var pwmOutput = Pi.Gpio[4].ToPwmPin();
             var serialDataPin = Pi.Gpio[17];
             var serialLatchPin = Pi.Gpio[27];
             var serialClockPin = Pi.Gpio[22];
 
-            pwmOutput.PinMode = GpioPinDriveMode.PwmOutput;
+            foreach (var pin in Pi.Gpio)
+            {
+                Console.WriteLine($"{pin.BcmPin}: {((GpioPin)pin).Capabilities}");
+            }
             serialDataPin.PinMode = GpioPinDriveMode.Output;
             serialLatchPin.PinMode = GpioPinDriveMode.Output;
             serialClockPin.PinMode = GpioPinDriveMode.Output;
@@ -61,7 +64,7 @@ namespace BB8
                 Console.WriteLine(DateTime.Now.ToString());
 
                 double pw = 1;
-                pwmOutput.PwmRegister = (int)(pwmOutput.PwmRange * pw);
+                pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
                 ConsoleKey key;
                 while ((key = Console.ReadKey().Key) != ConsoleKey.Enter)
                 {
@@ -76,12 +79,12 @@ namespace BB8
                     else if (key == ConsoleKey.DownArrow)
                     {
                         pw = Math.Max(0, pw - 0.01);
-                        pwmOutput.PwmRegister = (int)(pwmOutput.PwmRange * pw);
+                        pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
                     }
                     else if (key == ConsoleKey.UpArrow)
                     {
                         pw = Math.Min(1, pw + 0.01);
-                        pwmOutput.PwmRegister = (int)(pwmOutput.PwmRange * pw);
+                        pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
                     }
                     Console.WriteLine(pw);
                 }

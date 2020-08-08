@@ -16,13 +16,21 @@ I'm using:
 
 ## Building
 
-Package the BB8 project in this repository using `dotnet`.
+1. Package the BB8 project in this repository using `dotnet`.
 
-    dotnet publish
+        dotnet publish -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true -r linux-arm
 
-Copy the "Windows" assemblies from `\src\BB8\bin\Debug\net46\win7-x64` via SFTP to the Pi.
+    This is also saved in `publish.ps1`
 
-Run the project via SUDO:
+2. Copy the files from `\src\BB8\bin\Release\net5.0\linux-arm\publish` via to the Pi.
 
-    sudo BB8.exe
+    * I [set up an SSH server on my Windows 10 machine within WSL.](https://superuser.com/a/1114162/45815)
+    * I symlinked my publish folder to a folder in my WSL home.
+    * I then used SCP to pull the file to my Raspberry Pi.
+
+3. Run the project via `sudo`:
+
+        sudo BB8
+
+    `sudo` is necessary to use the hardware PWM features.
 

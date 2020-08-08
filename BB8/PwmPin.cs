@@ -40,6 +40,7 @@ namespace BB8
         public HardwarePwmPin(GpioPin gpioPin)
         {
             this.gpioPin = gpioPin;
+            this.gpioPin.PinMode = GpioPinDriveMode.PwmOutput;
         }
 
         public uint PwmRange => gpioPin.PwmRange;

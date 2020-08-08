@@ -1,0 +1,11 @@
+{
+  "motors": {
+    "TestMotor": 2,
+    "GpioPwmMotor": 4,
+    "Serial": {
+      "GpioData": 17,
+      "GpioLatch": 27,
+      "GpioClock": 22
+    }
+  }
+}

@@ -9,6 +9,7 @@ namespace BB8
 {
     public class SerialDigitizer
     {
+        // TODO - faster than 1?
         // The chips involved support up to 100 MHz, though our polling code only supports 1 KHz. 
         // We could reduce this more if we don't need to read and got rid of Thread.Sleep.
         const int sleepDelay = 1;

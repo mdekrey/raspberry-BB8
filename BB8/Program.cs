@@ -1,104 +1,81 @@
-﻿using System;
+﻿using BB8;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using Unosquare.RaspberryIO;
 using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
 
-namespace BB8
-{
-    // GPIO Pins
-    // 4 - 5V
-    // 6 - Ground
-    // 7 - GPIO 4 - PWM motor 2 (orange)
-    // 9 - Ground - DIR_EN (green)
-    // 11 - GPIO 17 - Serial Data (yellow)
-    // 13 - GPIO 27 - Serial Latch (blue)
-    // 15 - GPIO 22 - Clock (grey)
+var localConfig = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json");
+var config = new ConfigurationBuilder()
+    .AddJsonFile("config.json")
+    .AddJsonFile(localConfig, optional: true)
+    .Build();
+var motorConfig = config.GetSection("motors").Get<MotorConfiguration>();
 
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var originalColor = Console.ForegroundColor;
+Console.WriteLine(localConfig);
+Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(motorConfig));
+
+var originalColor = Console.ForegroundColor;
             
-            Pi.Init<BootstrapWiringPi>();
+Pi.Init<BootstrapWiringPi>();
 
-            //var sensorPin = Pi.Gpio[18];
+var pwmOutput = Pi.Gpio[motorConfig.GpioPwmMotor].ToPwmPin();
+var serialDataPin = Pi.Gpio[motorConfig.Serial.GpioData];
+var serialLatchPin = Pi.Gpio[motorConfig.Serial.GpioLatch];
+var serialClockPin = Pi.Gpio[motorConfig.Serial.GpioClock];
 
-            var pwmOutput = Pi.Gpio[4].ToPwmPin();
-            var serialDataPin = Pi.Gpio[17];
-            var serialLatchPin = Pi.Gpio[27];
-            var serialClockPin = Pi.Gpio[22];
+foreach (var pin in Pi.Gpio)
+{
+    Console.WriteLine($"{pin.BcmPin}: {((GpioPin)pin).Capabilities}");
+}
+serialDataPin.PinMode = GpioPinDriveMode.Output;
+serialLatchPin.PinMode = GpioPinDriveMode.Output;
+serialClockPin.PinMode = GpioPinDriveMode.Output;
 
-            foreach (var pin in Pi.Gpio)
-            {
-                Console.WriteLine($"{pin.BcmPin}: {((GpioPin)pin).Capabilities}");
-            }
-            serialDataPin.PinMode = GpioPinDriveMode.Output;
-            serialLatchPin.PinMode = GpioPinDriveMode.Output;
-            serialClockPin.PinMode = GpioPinDriveMode.Output;
+var sw = new Stopwatch();
+sw.Start();
+try
+{
+    var serial = new SerialDigitizer(data: serialDataPin, latch: serialLatchPin, clock: serialClockPin, bitCount: 8);
+    Console.ForegroundColor = ConsoleColor.Yellow;
 
-            //var connection = new GpioConnection(new GpioConnectionSettings
-            //{
-            //    PollInterval = TimeSpan.FromMilliseconds(0.001)
-            //}, sensorPin);
+    Console.WriteLine(DateTime.Now.ToString());
 
-            var sw = new Stopwatch();
-            //connection.PinStatusChanged += (sender, statusArgs) => 
-            //{
-            //    if (statusArgs.Configuration.Pin == sensorPin.Pin)
-            //    {
-            //        Console.Write(statusArgs.Enabled ? 1 : 0);
-            //    }
-            //};
-
-            // bit 5 - motor header 1/2 pin 5
-            // bit 2 - motor header 1/2 pin 4
-            sw.Start();
-            try
-            {
-                var serial = new SerialDigitizer(data: serialDataPin, latch: serialLatchPin, clock: serialClockPin, bitCount: 8);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-
-                Console.WriteLine(DateTime.Now.ToString());
-
-                double pw = 1;
-                pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
-                ConsoleKey key;
-                while ((key = Console.ReadKey().Key) != ConsoleKey.Enter)
-                {
-                    if (key == ConsoleKey.LeftArrow)
-                    {
-                        serial.WriteData(2).Wait();
-                    }
-                    else if (key == ConsoleKey.RightArrow)
-                    {
-                        serial.WriteData(0x10).Wait();
-                    }
-                    else if (key == ConsoleKey.DownArrow)
-                    {
-                        pw = Math.Max(0, pw - 0.01);
-                        pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
-                    }
-                    else if (key == ConsoleKey.UpArrow)
-                    {
-                        pw = Math.Min(1, pw + 0.01);
-                        pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
-                    }
-                    Console.WriteLine(pw);
-                }
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Ending");
-
-                serial.WriteData(0).Wait();
-                // Give the Pi the time to process the signal so it actually shuts down
-                Thread.Sleep(1000);
-            }
-            finally
-            {
-                Console.ForegroundColor = originalColor;
-            }
+    double pw = 1;
+    pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
+    ConsoleKey key;
+    while ((key = Console.ReadKey().Key) != ConsoleKey.Enter)
+    {
+        if (key == ConsoleKey.LeftArrow)
+        {
+            serial.WriteData(2).Wait();
         }
+        else if (key == ConsoleKey.RightArrow)
+        {
+            serial.WriteData(0x10).Wait();
+        }
+        else if (key == ConsoleKey.DownArrow)
+        {
+            pw = Math.Max(0, pw - 0.01);
+            pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
+        }
+        else if (key == ConsoleKey.UpArrow)
+        {
+            pw = Math.Min(1, pw + 0.01);
+            pwmOutput.PwmValue = (uint)(pwmOutput.PwmRange * pw);
+        }
+        Console.WriteLine($"{pw} * {pwmOutput.PwmRange}");
     }
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("Ending");
+
+    serial.WriteData(0).Wait();
+    // Give the Pi the time to process the signal so it actually shuts down
+    Thread.Sleep(1000);
+}
+finally
+{
+    Console.ForegroundColor = originalColor;
 }

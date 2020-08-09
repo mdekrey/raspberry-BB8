@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Unosquare.RaspberryIO;
@@ -15,7 +16,7 @@ var config = new ConfigurationBuilder()
     .AddJsonFile("config.json")
     .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true)
     .Build();
-var motorConfig = config.GetSection("motors").Get<MotionConfiguration>();
+var motorConfig = config.GetSection("motion").Get<MotionConfiguration>();
 
 var originalColor = Console.ForegroundColor;
             
@@ -28,9 +29,8 @@ foreach (var pin in Pi.Gpio)
 }
 
 var motor = new Motor();
-await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, new Dictionary<Motor, MotorConfiguration> { { motor, new() { PwmGpioPin = motorConfig.GpioPwmMotor, ForwardBit = 1, BackwardBit = 4 } } }))
+await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, new Dictionary<Motor, MotorConfiguration> { { motor, motorConfig.Motors.First(m => m != null)! } }))
 {
-
     try
     {
         Console.ForegroundColor = ConsoleColor.Yellow;

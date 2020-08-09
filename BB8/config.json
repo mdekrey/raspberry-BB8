@@ -1,5 +1,12 @@
 {
-  "motors": {
+  "motion": {
+    "Motors": [
+      {
+        "PwmGpioPin": 4,
+        "ForwardBit": 1,
+        "BackwardBit": 4
+      }
+    ],
     "TestMotor": 2,
     "GpioPwmMotor": 4,
     "Serial": {

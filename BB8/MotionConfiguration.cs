@@ -7,12 +7,11 @@ using System.Threading.Tasks;
 
 namespace BB8
 {
-    public class MotionConfiguration
+    public record MotionConfiguration
     {
-        public MotorSerialControlPins Serial { get; set; }
+        public MotorSerialControlPins Serial { get; init; } = new MotorSerialControlPins();
 
-        public int TestMotor { get; set; }
+        public List<MotorConfiguration?> Motors { get; init; } = new();
 
-        public int GpioPwmMotor { get; set; }
     }
 }

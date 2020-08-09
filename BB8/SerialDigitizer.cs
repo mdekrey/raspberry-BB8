@@ -27,9 +27,8 @@ namespace BB8
             this.bitCount = bitCount;
         }
 
-        public Task WriteData(int data)
-        {
-            var result = new Task(async () =>
+        public Task WriteDataAsync(int data) =>
+            Task.Factory.StartNew(async () =>
             {
                 await Task.Yield();
                 latchPin.Write(false);
@@ -44,10 +43,6 @@ namespace BB8
                 }
                 latchPin.Write(true);
                 Thread.Sleep(sleepDelay);
-            });
-            result.Start();
-            return result;
-        }
-
+            }, TaskCreationOptions.LongRunning);
     }
 }

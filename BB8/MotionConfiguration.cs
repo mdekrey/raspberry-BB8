@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BB8.RaspberryPi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BB8
 {
-    public class MotorConfiguration
+    public class MotionConfiguration
     {
         public MotorSerialControlPins Serial { get; set; }
 

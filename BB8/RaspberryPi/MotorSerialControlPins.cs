@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BB8
+namespace BB8.RaspberryPi
 {
     public class MotorSerialControlPins
     {

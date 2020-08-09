@@ -25,7 +25,7 @@ I'm using:
 2. Copy the files from `\src\BB8\bin\Release\net5.0\linux-arm\publish` via to the Pi.
 
     * I [set up an SSH server on my Windows 10 machine within WSL.](https://superuser.com/a/1114162/45815)
-    * I symlinked my publish folder to a folder in my WSL home.
+    * I symlinked my publish folder to a folder in my WSL home to make it easy to find. (This really is unnecessary.)
     * I then used SCP to pull the file to my Raspberry Pi.
 
 3. Run the project via `sudo`:

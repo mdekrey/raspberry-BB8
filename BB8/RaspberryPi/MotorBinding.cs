@@ -47,7 +47,6 @@ namespace BB8.RaspberryPi
                     var cancellation = new CancellationTokenSource();
                     return (cancel: cancellation.Cancel, task: prev.task.ContinueWith(async _ =>
                     {
-                        Console.WriteLine("Send byte " + nextByte);
                         if (!cancellation.IsCancellationRequested)
                             await serial.WriteDataAsync(nextByte);
                     }).Unwrap());
@@ -65,22 +64,12 @@ namespace BB8.RaspberryPi
                 var pwmOutput = gpioPins[kvp.Value.PwmGpioPin].ToPwmPin();
                 subscriptions.Add(kvp.Key
                     .Select(state => (state, pwm: pwmOutput))
-                    .Subscribe(state =>
-                    {
-                        Console.WriteLine("Sset pwm " + state.state.Speed);
-
-                        state.pwm.PwmValue = (uint)(pwmOutput.PwmRange * state.state.Speed);
-                    }));
+                    .Subscribe(state => state.pwm.PwmValue = (uint)(pwmOutput.PwmRange * kvp.Value.ToSpeed(state.state))));
             }
         }
 
-        private static byte ToFlag((MotorState MotorState, MotorConfiguration Configuration) state) =>
-            state switch
-            {
-                { MotorState: { Direction: MotorDirection.Forward }, Configuration: { ForwardBit: var bit } } => (byte)(1 << bit),
-                { MotorState: { Direction: MotorDirection.Backward }, Configuration: { BackwardBit: var bit } } => (byte)(1 << bit),
-                _ => 0
-            };
+        private static byte ToFlag((MotorState MotorState, MotorConfiguration Configuration) state) => 
+            state.Configuration.ToFlag(state.MotorState);
 
         public async ValueTask DisposeAsync()
         {

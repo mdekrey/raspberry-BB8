@@ -16,6 +16,7 @@ panelRingOuterOverlap = 3;
 panelRingInnerOverlap = 1;
 panelArmDegrees = panelDegrees * 0.6;
 panelArmBoltDegrees = panelDegrees * 0.52;
+panelDesignDepth = wallThickness / 5;
 
 if (camlockBoltRadius * 2 + 2 > camlockNutThickness)
     warn("Camlock Bolt/Nut sizes invalid");
@@ -104,45 +105,90 @@ module panel() {
     }
 }
 
-panelOverlapFactor = panelRingInnerRadius * 0.5;
-module panelMainTop() {
-    union() {
-        // outer layer
-        difference() {
-            translate([-radius + panelOverlapFactor, 0])
-            square([radius * 2, radius*2], center=true);
+module panelMainTop(panelDesign) {
+    intersection() {
+        rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) panel();
+        union() {
+            // outer layer
+            difference() {
+                translate([-radius + panelOverlapFactor, 0, 0])
+                cube([radius * 2, radius*2, radius*2], center=true);
 
-            circle(r = panelLayerWall + insertionTolerance, $fn=$fn);
+                sphere(r = panelLayerWall + insertionTolerance, $fn=$fn);
+            }
+
+            // inner layer
+            difference() {
+                sphere(r = panelLayerWall + insertionTolerance, $fn=$fn);
+
+                translate([radius - panelOverlapFactor - insertionTolerance, 0, 0])
+                cube([radius * 2, radius*2, radius*2], center=true);
+            }
         }
+        panelDesignEmboss(4);
+    }
+}
 
-        // innter layer
+module panelMainBottom(panelDesign) {
+    intersection() {
+        rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) panel();
+        union() {
+            difference() {
+                sphere(r = panelLayerWall, $fn=$fn);
+                translate([-radius - panelOverlapFactor, 0, 0])
+                cube([radius * 2, radius*2, radius*2], center=true);
+
+            }
+
+            intersection() {
+
+                translate([radius + panelOverlapFactor + insertionTolerance, 0, 0])
+                cube([radius * 2, radius*2, radius*2], center=true);
+
+                difference() {
+                    cube([radius * 2, radius*2, radius*2], center=true);
+                    sphere(r = panelLayerWall, $fn=$fn);
+                }
+            }
+        }
+        panelDesignEmboss(panelDesign);
+    }
+}
+
+module panelDesign(panelNumber) {
+    intersection() {
+        resize(newsize = [panelRingInnerRadius*2,panelRingInnerRadius*2])
+        import(str("tool-panel-",panelNumber,".svg"), center=true, dpi=200);
+
+        translate([panelRingInnerRadius*2 / 200, -panelRingInnerRadius*2 / 200])
+        square([panelRingInnerRadius*2, panelRingInnerRadius*2], center=true);
+    }
+}
+
+module panelDesignEmboss(panelDesign) {
+    union() {
+        sphere(r=radius - panelDesignDepth - insertionTolerance, $fn=30);
+
         difference() {
-            circle(r = panelLayerWall + insertionTolerance, $fn=$fn);
+            cube([radius*2, radius*2, radius*2], center=true);
 
-            translate([radius - panelOverlapFactor - insertionTolerance, 0])
-            square([radius * 2, radius*2], center=true);
+            rotate(45)
+            linear_extrude(height=radius)
+            offset(insertionTolerance)
+            panelDesign(panelDesign);
         }
     }
 }
 
-module panelMainBottom() {
-    union() {
+module panelDesignCurved(panelDesign) {
+    intersection() {
+        rotate(45)
+        linear_extrude(height=radius)
+        panelDesign(panelDesign);
+
         difference() {
-            circle(r = panelLayerWall, $fn=$fn);
-            translate([-radius - panelOverlapFactor, 0])
-            square([radius * 2, radius*2], center=true);
-
-        }
-
-        intersection() {
-
-            translate([radius + panelOverlapFactor + insertionTolerance, 0])
-            square([radius * 2, radius*2], center=true);
-
-            difference() {
-                square([radius * 2, radius*2], center=true);
-                circle(r = panelLayerWall, $fn=$fn);
-            }
+            sphere(r=radius, $fn=$fnBody);
+            sphere(r=radius - panelDesignDepth, $fn=30);
         }
     }
 }

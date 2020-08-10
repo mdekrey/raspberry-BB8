@@ -17,8 +17,13 @@ pinLength = camlockBoltLength;
 adjacentCamlockOffsetStart = 7.5;
 adjacentCamlockOffsetStep = 7.5;
 adjacentCamlockOffsetMax = 20;
+panelOverlapFactor = 28;
 
 include <shared.scad>;
-*tFrameThird();
-*panelRingQuarter();
+tFrameThird();
+panelRingQuarter();
 *translate([0,0, -radius * cos(panelDegrees)]) panel();
+* panelMainBottom(4);
+
+
+*translate([0,0, -radius * cos(panelDegrees)]) panelMainTop(4);

@@ -17,9 +17,9 @@ pinLength = 15;
 adjacentCamlockOffsetStart = 7.5;
 adjacentCamlockOffsetStep = 20;
 adjacentCamlockOffsetMax = 20;
+panelOverlapFactor = 14;
 
 include <shared.scad>;
-// panelRingOverlap = 0; // hidden during test renders for now
 
 *tFrameThird();
 *translate([0,0, -radius * cos(panelDegrees)]) panelRing();
@@ -27,7 +27,7 @@ include <shared.scad>;
 // rotate([-90,-90,0])
 //translate([0,0, -radius * cos(panelDegrees)]) 
 *panelRingQuarter();
-rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) translate([0,0, -radius * cos(panelDegrees)]) panel();
+*rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) translate([0,0, -radius * cos(panelDegrees)]) panel();
 
 // camlockBolt(20);
 // diagonal bolt makes the bolt stronger from perpendicular sheer strength
@@ -39,5 +39,6 @@ rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) translate([0,0, -r
 // rotate([90,0,0]) pin();
 //rotateLockSlot(20, 72.5574, 6, 35);
 
-*translate([0,0, -radius * cos(panelDegrees)]) rotate([90, 0, 0]) panelMainTop();
-*translate([0,0, -radius * cos(panelDegrees)]) rotate([90, 0, 0]) panelMainBottom();
+translate([0,0, -radius * cos(panelDegrees)]) panelMainTop(4);
+translate([0,0, -radius * cos(panelDegrees) - 10]) panelMainBottom(4);
+translate([0,0, -radius * cos(panelDegrees) + 10]) panelDesignCurved(4);

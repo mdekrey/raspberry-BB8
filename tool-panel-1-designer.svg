@@ -1,0 +1,11 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <g>
+        <g transform-origin="center" transform="rotate(45)">
+            <image href="../BB8 Ball Pattern.jpg" height="2550" width="3300" transform="scale(0.47169811320754716981132075471698, 0.47169811320754716981132075471698) translate(-1044,-277)"/>
+        </g>
+        <rect height="201" width="201" x="-0.5" y="-0.5" stroke-width="1" stroke="black" fill="transparent" />
+    </g>
+    <g>
+
+    </g>
+</svg>

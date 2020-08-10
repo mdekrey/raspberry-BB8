@@ -8,7 +8,8 @@ spokeWidth = 7;
 spokeBuffer = 2;
 tipBuffer = 10;
 wheelBuffer = 3;
-ribSize = 0.8;
+ribSize = 0.6;
+ribSpacing = 3;
 discThickness = 8;
 boltRadius = 3.5/2;
 boltHeadRadius = 5.5 / 2;
@@ -67,10 +68,11 @@ module wheelHalf() {
         intersection()
         {
             union() {
-                for(y=[ceil(spokeOffset / ribSize / 2)*ribSize*2-ribSize/3:ribSize*2:wheelHeight / 2]) {
+                for(y=[ceil(spokeOffset / ribSize / ribSpacing)*ribSize*ribSpacing-ribSize/3*ribSpacing:ribSize*ribSpacing:wheelHeight / 2]) {
                     for (m=[-1:2:2]) { // positive and negative
-                        translate([cos(asin(y / radius)) * radius - shift, y*m-spokeOffset])
-                        circle(ribSize/2);
+                        translate([cos(asin(y / radius)) * radius - shift - 0.1, y*m-spokeOffset])
+                        rotate(asin(y / radius) + 45)
+                        square([ribSize, ribSize], center=true);
                     }
                 }
                 intersection()

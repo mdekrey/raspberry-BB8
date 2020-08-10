@@ -19,5 +19,6 @@ adjacentCamlockOffsetStep = 7.5;
 adjacentCamlockOffsetMax = 20;
 
 include <shared.scad>;
-tFrameThird();
-// panelRingQuarter();
+*tFrameThird();
+*panelRingQuarter();
+*translate([0,0, -radius * cos(panelDegrees)]) panel();

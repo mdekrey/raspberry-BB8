@@ -10,7 +10,8 @@ visibleBoltBezelDepth = visibleBoltOuterRadius * 0.2;
 visibleBoltBezel = visibleBoltOuterRadius * 0.2;
 
 panelRingDegrees = panelDegrees * 4/15;
-panelRingInnerRadius = radius * sin(panelDegrees - panelRingDegrees);
+panelRingInnerDegrees = panelDegrees - panelRingDegrees;
+panelRingInnerRadius = radius * sin(panelRingInnerDegrees);
 panelRingOuterOverlap = 3;
 panelRingInnerOverlap = 1;
 panelArmDegrees = panelDegrees * 0.6;
@@ -61,6 +62,89 @@ module panelRing() {
         }
     }
 
+}
+
+panelAdditionalWallThickness = cos(panelDegrees) * maxLip;
+panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;
+panelLayerWall = radius - (radius - panelInnerWall) * 0.6;
+module panel() {
+    difference() {
+        intersection() {
+            bodySphere(additionalWallThickness = panelAdditionalWallThickness);
+
+            union() {
+                intersection() {
+                    cylinder(r=panelRingInnerRadius - insertionTolerance, h=radius * 2);
+
+                    difference() {
+                        cube([radius*2,radius*2,radius*2], center=true);
+                        sphere(radius - wallThickness/2 - insertionTolerance, $fn=$fn);
+
+                        rotate([0,0,-30+panelRotateLockOffset+rotateLockDegrees])
+                        linear_extrude(height=radius)
+                        offset(r=insertionTolerance)
+                        import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
+                    }
+                }
+
+                intersection() {
+                    sphere(radius - wallThickness/2 - insertionTolerance, $fn=$fn);
+                    cylinder(r=panelRingInnerRadius + panelRingInnerOverlap - insertionTolerance, h=radius);
+                }
+            }
+        }
+
+
+        for (i = [0 : 90 : 360]) {
+            rotate([0, panelArmBoltDegrees, 15+panelRotateLockOffset+rotateLockDegrees+i])
+            translate([0, 0, radius - wallThickness - panelAdditionalWallThickness])
+            rotate([0, 180, 0])
+            visibleBoltHole();
+        }
+    }
+}
+
+panelOverlapFactor = panelRingInnerRadius * 0.5;
+module panelMainTop() {
+    union() {
+        // outer layer
+        difference() {
+            translate([-radius + panelOverlapFactor, 0])
+            square([radius * 2, radius*2], center=true);
+
+            circle(r = panelLayerWall + insertionTolerance, $fn=$fn);
+        }
+
+        // innter layer
+        difference() {
+            circle(r = panelLayerWall + insertionTolerance, $fn=$fn);
+
+            translate([radius - panelOverlapFactor - insertionTolerance, 0])
+            square([radius * 2, radius*2], center=true);
+        }
+    }
+}
+
+module panelMainBottom() {
+    union() {
+        difference() {
+            circle(r = panelLayerWall, $fn=$fn);
+            translate([-radius - panelOverlapFactor, 0])
+            square([radius * 2, radius*2], center=true);
+
+        }
+
+        intersection() {
+
+            translate([radius + panelOverlapFactor + insertionTolerance, 0])
+            square([radius * 2, radius*2], center=true);
+
+            difference() {
+                square([radius * 2, radius*2], center=true);
+                circle(r = panelLayerWall, $fn=$fn);
+            }
+        }
+    }
 }
 
 module tFrame() {

@@ -21,12 +21,13 @@ adjacentCamlockOffsetMax = 20;
 include <shared.scad>;
 // panelRingOverlap = 0; // hidden during test renders for now
 
-tFrameThird();
+*tFrameThird();
 *translate([0,0, -radius * cos(panelDegrees)]) panelRing();
 *tFrame();
 // rotate([-90,-90,0])
 //translate([0,0, -radius * cos(panelDegrees)]) 
 *panelRingQuarter();
+rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) translate([0,0, -radius * cos(panelDegrees)]) panel();
 
 // camlockBolt(20);
 // diagonal bolt makes the bolt stronger from perpendicular sheer strength
@@ -37,3 +38,6 @@ tFrameThird();
 }
 // rotate([90,0,0]) pin();
 //rotateLockSlot(20, 72.5574, 6, 35);
+
+*translate([0,0, -radius * cos(panelDegrees)]) rotate([90, 0, 0]) panelMainTop();
+*translate([0,0, -radius * cos(panelDegrees)]) rotate([90, 0, 0]) panelMainBottom();

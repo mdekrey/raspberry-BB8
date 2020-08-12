@@ -14,5 +14,6 @@
       "GpioLatch": 27,
       "GpioClock": 22
     }
-  }
+  },
+  "joystickDevice": "/dev/input/js0"
 }

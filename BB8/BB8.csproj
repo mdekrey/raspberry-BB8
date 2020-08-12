@@ -25,6 +25,4 @@
     <PackageReference Include="Unosquare.WiringPi" Version="0.5.0" />
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties config_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
-
 </Project>

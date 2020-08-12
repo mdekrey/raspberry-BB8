@@ -1,21 +1,20 @@
 ﻿using BB8;
 using BB8.Domain;
+using BB8.Gamepad;
 using BB8.RaspberryPi;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Unosquare.RaspberryIO;
-using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
 
 var config = new ConfigurationBuilder()
     .AddJsonFile("config.json")
     .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true)
     .Build();
+var devicePath = config["joystickDevice"];
 var motorConfig = config.GetSection("motion").Get<MotionConfiguration>();
 
 var originalColor = Console.ForegroundColor;
@@ -53,6 +52,11 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, ne
 
 void MainLoop(Motor motor)
 {
+    
+    var controller = (IGamepadController)new GamepadController(devicePath);
+
+    using var controllerUpdates = controller.GamepadStateChanged.Subscribe(gamepad => Console.WriteLine(gamepad));
+
     while (true)
     {
         switch (Console.ReadKey().Key)

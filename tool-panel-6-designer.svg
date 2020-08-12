@@ -48,14 +48,12 @@
         </g>
 
         <circle cx="100" cy="100" r="91.5" stroke="rgba(0, 0, 255, 0.375)" />
-        <circle cx="100" cy="100" r="53.5" stroke="rgba(0, 0, 255, 0.375)" />
-        <circle cx="100" cy="100" r="87" stroke="rgba(0, 0, 255, 0.375)" />
-        <circle cx="100" cy="100" r="63" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="64" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="69" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="75" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
-        <circle cx="100" cy="100" r="80" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
     </g>
     <g fill="transparent" stroke="red" style="opacity: 0.75">
+        <path d="M23,51 A91.5,91.5 0 0 0 23,149 l25,-16 l6,-10 h12 v-46 h-12 l-6,-10 l-25,-16 Z" />
+        <path d="M177,51 A91.5,91.5 0 0 1 177,149 l-25,-16 l-6,-10 h-12 v-46 h12 l6,-10 l25,-16 Z" />
+        <path d="M75.5,51 v98 h12 v-98 z" />
+        <path d="M94,51 v98 h12 v-98 z" />
+        <path d="M112.5,51 h12 v19 l-2,6 v73 h-8 v-73 l-2,-6 Z" />
     </g>
 </svg>

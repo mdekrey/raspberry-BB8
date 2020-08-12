@@ -18,12 +18,21 @@ adjacentCamlockOffsetStart = 7.5;
 adjacentCamlockOffsetStep = 7.5;
 adjacentCamlockOffsetMax = 20;
 panelOverlapFactor = 28;
+maxLip = 0;
 
 include <shared.scad>;
-tFrameThird();
-panelRingQuarter();
+*tFrameThird();
+*panelRingQuarter();
 *translate([0,0, -radius * cos(panelDegrees)]) panel();
-* panelMainBottom(4);
+*panelMainBottom(4);
 
-
-*translate([0,0, -radius * cos(panelDegrees)]) panelMainTop(4);
+rotate([0,0,90])
+translate([0,0, panelHeight - radius])
+union() {
+    *panel();
+    panelMainTop(4, true);
+    panelMainTop(4, false);
+    panelMainBottom(4, true);
+    panelMainBottom(4, false);
+    panelDesignCurved(4);
+}

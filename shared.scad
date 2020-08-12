@@ -1,7 +1,6 @@
 panelDegrees = 35; // https://rimstar.org/science_electronics_projects/bb-8_dimensions.htm
 panelRadius = radius * sin(panelDegrees);
 insertionTolerance = 0.3;
-maxLip = 3;
 
 visibleBoltHole = 4 / 2;
 visibleBoltOuterRadius = radius * 0.07734 / 2;
@@ -16,7 +15,6 @@ panelRingOuterOverlap = 3;
 panelRingInnerOverlap = 1;
 panelArmDegrees = panelDegrees * 0.6;
 panelArmBoltDegrees = panelDegrees * 0.52;
-panelDesignDepth = wallThickness / 5;
 
 if (camlockBoltRadius * 2 + 2 > camlockNutThickness)
     warn("Camlock Bolt/Nut sizes invalid");
@@ -24,6 +22,15 @@ if (camlockBoltRadius * 2 + 2 > camlockNutThickness)
 panelRadiusOffset = radius * cos(panelDegrees);
 panelRotateLockOffset = 5;
 rotateLockDegrees = 6;
+
+panelRingInnerActualDegrees = asin((panelRingInnerRadius - insertionTolerance) / radius);
+panelRingInnerInternalDegrees = asin((panelRingInnerRadius + panelRingInnerOverlap - insertionTolerance)
+    / (radius - wallThickness));
+panelHeight = radius - cos(panelRingInnerInternalDegrees) * (radius - wallThickness);
+ringThickness = cos(panelRingInnerActualDegrees) * radius - cos(panelRingInnerInternalDegrees) * (radius - wallThickness);
+
+panelDesignDepth = radius - cos(asin((panelRingInnerRadius * 0.92) / radius)) * radius + insertionTolerance;
+panelDesignRadius = wallThickness - 0.2 * millisPerInch;
 
 module bodySphere(additionalWallThickness = 0) {
     difference() {
@@ -68,8 +75,9 @@ module panelRing() {
 panelAdditionalWallThickness = cos(panelDegrees) * maxLip;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;
 panelLayerWall = radius - (radius - panelInnerWall) * 0.6;
-module panel() {
+module panel(panelDesign, includeInternalBolts = false) {
     difference() {
+        rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset])
         intersection() {
             bodySphere(additionalWallThickness = panelAdditionalWallThickness);
 
@@ -93,11 +101,13 @@ module panel() {
                     cylinder(r=panelRingInnerRadius + panelRingInnerOverlap - insertionTolerance, h=radius);
                 }
             }
+
         }
 
+        panelDesignEmboss(4);
 
         for (i = [0 : 90 : 360]) {
-            rotate([0, panelArmBoltDegrees, 15+panelRotateLockOffset+rotateLockDegrees+i])
+            rotate([0, panelArmBoltDegrees, i])
             translate([0, 0, radius - wallThickness - panelAdditionalWallThickness])
             rotate([0, 180, 0])
             visibleBoltHole();
@@ -105,53 +115,22 @@ module panel() {
     }
 }
 
-module panelMainTop(panelDesign) {
+module panelMainTop(panelDesign, largeSize /* = true */) {
     intersection() {
-        rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) panel();
-        union() {
-            // outer layer
-            difference() {
-                translate([-radius + panelOverlapFactor, 0, 0])
-                cube([radius * 2, radius*2, radius*2], center=true);
+        panel(panelDesign);
 
-                sphere(r = panelLayerWall + insertionTolerance, $fn=$fn);
-            }
-
-            // inner layer
-            difference() {
-                sphere(r = panelLayerWall + insertionTolerance, $fn=$fn);
-
-                translate([radius - panelOverlapFactor - insertionTolerance, 0, 0])
-                cube([radius * 2, radius*2, radius*2], center=true);
-            }
-        }
-        panelDesignEmboss(4);
+        translate([
+            (largeSize ? -radius : radius + insertionTolerance) + panelOverlapFactor, 0,
+            radius * 2 - panelHeight + ringThickness])
+        cube([radius * 2, radius*2, radius*2], center=true);
     }
 }
 
-module panelMainBottom(panelDesign) {
+module panelMainBottom(panelDesign, largeSize /* = true */) {
     intersection() {
-        rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset]) panel();
-        union() {
-            difference() {
-                sphere(r = panelLayerWall, $fn=$fn);
-                translate([-radius - panelOverlapFactor, 0, 0])
-                cube([radius * 2, radius*2, radius*2], center=true);
-
-            }
-
-            intersection() {
-
-                translate([radius + panelOverlapFactor + insertionTolerance, 0, 0])
-                cube([radius * 2, radius*2, radius*2], center=true);
-
-                difference() {
-                    cube([radius * 2, radius*2, radius*2], center=true);
-                    sphere(r = panelLayerWall, $fn=$fn);
-                }
-            }
-        }
-        panelDesignEmboss(panelDesign);
+        panel(panelDesign);
+        translate([(largeSize ? radius : -radius - insertionTolerance) - panelOverlapFactor, 0, -panelHeight + ringThickness - insertionTolerance])
+        cube([radius * 2, radius*2, radius*2], center=true);
     }
 }
 
@@ -166,29 +145,28 @@ module panelDesign(panelNumber) {
 }
 
 module panelDesignEmboss(panelDesign) {
-    union() {
-        sphere(r=radius - panelDesignDepth - insertionTolerance, $fn=30);
+    difference() {
+        rotate(45)
+        translate([0,0, radius - panelDesignDepth])
+        linear_extrude(height=panelDesignDepth)
+        offset(insertionTolerance)
+        panelDesign(panelDesign);
 
-        difference() {
-            cube([radius*2, radius*2, radius*2], center=true);
+        sphere(r=radius - panelDesignRadius, $fn=$fnDetail);
 
-            rotate(45)
-            linear_extrude(height=radius)
-            offset(insertionTolerance)
-            panelDesign(panelDesign);
-        }
     }
 }
 
 module panelDesignCurved(panelDesign) {
     intersection() {
         rotate(45)
-        linear_extrude(height=radius)
+        translate([0,0, radius - panelDesignDepth + insertionTolerance])
+        linear_extrude(height=panelDesignDepth)
         panelDesign(panelDesign);
 
         difference() {
             sphere(r=radius, $fn=$fnBody);
-            sphere(r=radius - panelDesignDepth, $fn=30);
+            sphere(r=radius - panelDesignRadius + insertionTolerance, $fn=$fnDetail);
         }
     }
 }

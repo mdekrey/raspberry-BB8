@@ -55,7 +55,7 @@ void MainLoop(Motor motor)
     
     var controller = (IGamepadController)new GamepadController(devicePath);
 
-    using var controllerUpdates = controller.GamepadStateChanged.Subscribe(gamepad => Console.WriteLine(gamepad));
+    using var controllerUpdates = controller.GamepadStateChanged.Subscribe(gamepad => Console.WriteLine(gamepad), ex => Console.WriteLine(ex));
 
     while (true)
     {

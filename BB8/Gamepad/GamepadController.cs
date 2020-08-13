@@ -37,20 +37,27 @@ namespace BB8.Gamepad
                 // Create the Task that will constantly read the device file, process its bytes and fire events accordingly
                 Task.Factory.StartNew(() =>
                 {
-                    using var fs = new FileStream(deviceFile, FileMode.Open);
-
-                    var token = cancellationTokenSource.Token;
-                    var message = new byte[8];
-
-                    while (!token.IsCancellationRequested)
+                    try
                     {
-                        // Read chunks of 8 bytes at a time.
-                        fs.Read(message, 0, 8);
+                        using var fs = new FileStream(deviceFile, FileMode.Open);
 
-                        if (HasConfiguration(message))
-                            ProcessConfiguration(message, observer.OnNext);
+                        var token = cancellationTokenSource.Token;
+                        var message = new byte[8];
 
-                        ProcessValues(message, observer.OnNext);
+                        while (!token.IsCancellationRequested)
+                        {
+                            // Read chunks of 8 bytes at a time.
+                            fs.Read(message, 0, 8);
+
+                            if (HasConfiguration(message))
+                                ProcessConfiguration(message, observer.OnNext);
+
+                            ProcessValues(message, observer.OnNext);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        observer.OnError(ex);
                     }
                 }, TaskCreationOptions.LongRunning);
 

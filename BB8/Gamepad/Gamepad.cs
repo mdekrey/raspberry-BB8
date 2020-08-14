@@ -12,18 +12,23 @@ using System.Threading.Tasks;
 namespace BB8.Gamepad
 {
 
-    public class GamepadController : IGamepadController
+    public class Gamepad : IGamepad
     {
         public IObservable<GamepadState> GamepadStateChanged { get; }
 
-        public GamepadController(string deviceFile = "/dev/input/js0")
+        public static string[] GetDeviceNames()
+        {
+            return Directory.GetFiles("/dev/input", "js*");
+        }
+
+        public Gamepad(string deviceFile = "/dev/input/js0")
         {
             if (!File.Exists(deviceFile))
                 throw new ArgumentException(nameof(deviceFile), $"The device {deviceFile} does not exist");
 
             this.GamepadStateChanged =
                 System.Reactive.Linq.Observable.Create(ProcessMessages(deviceFile))
-                    .Scan(GamepadState.Empty, (prev, next) => prev.HandleGamepadEvent(this, next))
+                    .Scan(GamepadState.Empty, GamepadState.Apply)
                     .DistinctUntilChanged()
                     .Replay(1)
                     .RefCount();

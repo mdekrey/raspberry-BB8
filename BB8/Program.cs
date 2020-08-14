@@ -1,4 +1,5 @@
 ﻿using BB8;
+using BB8.Bluetooth;
 using BB8.Domain;
 using BB8.Gamepad;
 using BB8.RaspberryPi;
@@ -6,7 +7,9 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Unosquare.RaspberryIO;
 using Unosquare.WiringPi;
 
@@ -14,13 +17,13 @@ var config = new ConfigurationBuilder()
     .AddJsonFile("config.json")
     .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true)
     .Build();
-var devicePath = config["joystickDevice"];
+var bluetoothGamepads = config.GetSection("gamepad:bluetoothDevices").Get<string[]>();
 var motorConfig = config.GetSection("motion").Get<MotionConfiguration>();
 
 var originalColor = Console.ForegroundColor;
-            
-Pi.Init<BootstrapWiringPi>();
 
+IBluetoothController bluetoothController = new BluetoothController();
+Pi.Init<BootstrapWiringPi>();
 
 foreach (var pin in Pi.Gpio)
 {
@@ -35,10 +38,13 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, ne
         Console.ForegroundColor = ConsoleColor.Yellow;
 
         Console.WriteLine(DateTime.Now.ToString());
+        using var controllerUpdates = AnyGamepadState(bluetoothController, bluetoothGamepads).Subscribe(gamepad => Console.WriteLine(gamepad), ex => Console.WriteLine(ex));
         MainLoop(motor);
 
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine("Ending");
+
+        await DisconnectGamepads(bluetoothController, bluetoothGamepads);
 
         // Give the Pi the time to process the signal so it actually shuts down
         Thread.Sleep(1000);
@@ -49,17 +55,11 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, ne
     }
 }
 
-
 void MainLoop(Motor motor)
 {
-    
-    var controller = (IGamepadController)new GamepadController(devicePath);
-
-    using var controllerUpdates = controller.GamepadStateChanged.Subscribe(gamepad => Console.WriteLine(gamepad), ex => Console.WriteLine(ex));
-
     while (true)
     {
-        switch (Console.ReadKey().Key)
+        switch (Console.ReadKey(true).Key)
         {
             case ConsoleKey.Enter:
                 return;
@@ -88,5 +88,46 @@ void MainLoop(Motor motor)
             { Direction: MotorDirection.Stopped }  => $"Stopped",
             { Direction: var dir, Speed: var speed } => $"{dir} @ {speed:0.00}",
         });
+    }
+}
+
+IObservable<GamepadState> AnyGamepadState(IBluetoothController bluetoothController, string[] bluetoothGamepads)
+{
+    return Observable.Create<IGamepad>(async (observer, cancellationToken) =>
+    {
+        string[] joysticks;
+        do
+        {
+            joysticks = Gamepad.GetDeviceNames();
+            if (!joysticks.Any())
+            {
+                string[] connectedDevices;
+                do
+                {
+                    connectedDevices = await bluetoothController.GetConnectedBluetoothDevicesAsync(cancellationToken);
+
+                    foreach (var notConnected in bluetoothGamepads.Except(connectedDevices))
+                    {
+                        if (await bluetoothController.ConnectAsync(notConnected, cancellationToken))
+                            break;
+                    }
+                } while (bluetoothGamepads.Except(connectedDevices).Any());
+            }
+        } while (!joysticks.Any());
+
+        observer.OnNext(new Gamepad(joysticks.First()));
+
+        return () => { };
+    })
+        .SelectMany(controller => controller.GamepadStateChanged)
+        .StartWith(GamepadState.Empty)
+        .Retry();
+}
+
+async System.Threading.Tasks.Task DisconnectGamepads(IBluetoothController bluetoothController, string[] bluetoothGamepads)
+{
+    foreach (var bt in bluetoothGamepads)
+    {
+        await bluetoothController.DisconnectAsync(bt);
     }
 }

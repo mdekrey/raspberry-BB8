@@ -15,5 +15,7 @@
       "GpioClock": 22
     }
   },
-  "joystickDevice": "/dev/input/js0"
+  "gamepad": {
+    "bluetoothDevices": [ "00:0B:E4:81:35:F5" ]
+  }
 }

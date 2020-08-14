@@ -11,7 +11,7 @@ namespace BB8
     {
         public MotorSerialControlPins Serial { get; init; } = new MotorSerialControlPins();
 
-        public List<MotorConfiguration?> Motors { get; init; } = new();
+        public List<MotorConfiguration> Motors { get; init; } = new();
 
     }
 }

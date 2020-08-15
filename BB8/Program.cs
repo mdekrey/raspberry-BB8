@@ -71,6 +71,3 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, mo
         Console.ForegroundColor = originalColor;
     }
 }
-// Give the Pi the time to process the signal so it actually shuts down
-// TODO - is the Sleep still necessary?
-Thread.Sleep(1000);

@@ -9,11 +9,6 @@ namespace BB8
 {
     public class SerialDigitizer
     {
-        // TODO - faster than 1?
-        // The chips involved support up to 100 MHz, though our polling code only supports 1 KHz. 
-        // We could reduce this more if we don't need to read and got rid of Thread.Sleep.
-        const int sleepDelay = 1;
-
         private readonly int bitCount;
         private readonly IGpioPin clockPin;
         private readonly IGpioPin dataPin;
@@ -28,21 +23,21 @@ namespace BB8
         }
 
         public Task WriteDataAsync(int data) =>
-            Task.Factory.StartNew(async () =>
+            // Running under Mono, this needed a sleepDelay of >= 1 to work, but .NET 5 doesn't seem to require it.
+            Task.Factory.StartNew(() =>
             {
-                await Task.Yield();
                 latchPin.Write(false);
-                Thread.Sleep(sleepDelay);
+                //Thread.Sleep(sleepDelay);
                 for (int bit = bitCount - 1; bit >= 0; --bit)
                 {
                     dataPin.Write((data & (1 << bit)) != 0);
                     clockPin.Write(true);
-                    Thread.Sleep(sleepDelay);
+                    //Thread.Sleep(sleepDelay);
                     clockPin.Write(false);
-                    Thread.Sleep(sleepDelay);
+                    //Thread.Sleep(sleepDelay);
                 }
                 latchPin.Write(true);
-                Thread.Sleep(sleepDelay);
+                //Thread.Sleep(sleepDelay);
             }, TaskCreationOptions.LongRunning);
     }
 }

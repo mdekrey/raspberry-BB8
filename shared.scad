@@ -72,7 +72,7 @@ module panelRing() {
 
 }
 
-panelAdditionalWallThickness = cos(panelDegrees) * maxLip;
+panelAdditionalWallThickness = 0; // cos(panelDegrees) * maxLip;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;
 panelLayerWall = radius - (radius - panelInnerWall) * 0.6;
 module panel(panelDesign, includeInternalBolts = false) {
@@ -274,21 +274,36 @@ module tFrameThird() {
     }
 }
 
-module panelRingQuarter() {
+module panelRingQuarter(split = false) {
     panelRingCenterDegrees = (panelDegrees - panelRingDegrees / 2);
     endHoleOffset = 180-panelDegrees + panelRingDegrees *0.625;
     difference() {
         intersection() {
             cube([radius, radius, radius]);
 
+            difference() {
+                cube([radius*2, radius*2, radius*2], center=true);
+
+                rotate([0,0,0])
+                cube([insertionTolerance, radius*2, radius*2], center=true);
+
+                rotate([0,0,-90])
+                cube([insertionTolerance, radius*2, radius*2], center=true);
+
+                if (split) {
+                    rotate([0,0,-45])
+                    cube([insertionTolerance, radius*2, radius*2], center=true);
+                }
+            }
+
             panelRing();
         }
 
         // end holes
-        for (end = [-1 : 2 : 2]) {
+        for (end = [-1 : (split ? 1 : 2) : 1]) {
             rotate([endHoleOffset,0,-45 + 45 * end])
             translate([0,0,-(radius - camlockNutThickness)])
-            rotate([0,90*end,0]) // bolt rotation
+            rotate([0,90,0]) // bolt rotation
             cylinder(r=pinRadius + insertionTolerance / 2, h=pinLength, center=true);
         }
 
@@ -313,21 +328,23 @@ module rotateLockSlot(boltLength, radius, angle, downwardAngle) {
     xOffset = offset * sin(downwardAngle);
     translate([0,0,yOffset])
     union() {
-        rotate([0,90,angle])
-        translate([0, 0, radius+xOffset])
-        rotate([0,downwardAngle,0])
-        cylinder(r=(camlockBoltRadius + insertionTolerance / 2), h=boltLength, center=true);
+        hull() {
+            rotate([0,90,angle])
+            translate([0, 0, radius+xOffset])
+            rotate([0,downwardAngle,0])
+            cylinder(r=(camlockBoltRadius + insertionTolerance / 2), h=boltLength, center=true, $fn=$fnDetail);
 
-        rotate([0,90,0])
-        translate([0, 0, radius+xOffset])
-        rotate([0,downwardAngle,0])
-        cylinder(r=(camlockBoltRadius + insertionTolerance / 2), h=boltLength, center=true);
+            rotate([0,90,0])
+            translate([0, 0, radius+xOffset])
+            rotate([0,downwardAngle,0])
+            cylinder(r=(camlockBoltRadius + insertionTolerance / 2), h=boltLength, center=true, $fn=$fnDetail);
 
-        rotate_extrude(angle = angle, $fn=$fn) {
-            translate([radius+xOffset,0])
-            rotate(-downwardAngle)
-            translate([- boltLength/2, -(camlockBoltRadius + insertionTolerance / 2)])
-            square([boltLength, 2*(camlockBoltRadius + insertionTolerance / 2)]);
+            rotate_extrude(angle = angle, $fn=$fnDetail) {
+                translate([radius+xOffset,0])
+                rotate(-downwardAngle)
+                translate([- boltLength/2, -(camlockBoltRadius + insertionTolerance / 2)])
+                square([boltLength, 2*(camlockBoltRadius + insertionTolerance / 2)]);
+            }
         }
 
         rotate([0,90,0])

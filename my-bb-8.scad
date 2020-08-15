@@ -22,11 +22,12 @@ maxLip = 0;
 
 include <shared.scad>;
 *tFrameThird();
-*panelRingQuarter();
+translate([0,0, panelHeight - radius])
+panelRingQuarter(false);
 *translate([0,0, -radius * cos(panelDegrees)]) panel();
 *panelMainBottom(4);
 
-rotate([0,0,90])
+*rotate([0,0,90])
 translate([0,0, panelHeight - radius])
 union() {
     *panel();

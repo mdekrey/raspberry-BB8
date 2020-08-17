@@ -304,7 +304,7 @@ module panelRingQuarter(split = false) {
             rotate([endHoleOffset,0,-45 + 45 * end])
             translate([0,0,-(radius - camlockNutThickness)])
             rotate([0,90,0]) // bolt rotation
-            cylinder(r=pinRadius + insertionTolerance / 2, h=pinLength, center=true);
+            cylinder(r=pinRadius + insertionTolerance / 2, h=pinLength + insertionTolerance, center=true);
         }
 
         // rotate lock holes

@@ -23,11 +23,11 @@ maxLip = 0;
 include <shared.scad>;
 *tFrameThird();
 translate([0,0, panelHeight - radius])
-panelRingQuarter(false);
+*panelRingQuarter(false);
 *translate([0,0, -radius * cos(panelDegrees)]) panel();
 *panelMainBottom(4);
 
-*rotate([0,0,90])
+rotate([0,0,90])
 translate([0,0, panelHeight - radius])
 union() {
     *panel();
@@ -37,3 +37,7 @@ union() {
     panelMainBottom(4, false);
     panelDesignCurved(4);
 }
+
+*rotate([180, 0, 0])
+translate([0,0, panelHeight - radius])
+panelGlueBracket();

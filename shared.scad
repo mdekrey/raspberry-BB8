@@ -104,7 +104,7 @@ module panel(panelDesign, includeInternalBolts = false) {
 
         }
 
-        panelDesignEmboss(4);
+        panelDesignEmboss(panelDesign);
 
         for (i = [0 : 90 : 360]) {
             rotate([0, panelArmBoltDegrees, i])
@@ -319,6 +319,48 @@ module panelRingQuarter(split = false) {
         translate([0, 0, radius])
         rotate([0, 0, 0])
         visibleBoltHole();
+    }
+}
+
+
+module panelGlueBracket() {
+    panelRingCenterDegrees = (panelDegrees - panelRingDegrees / 2);
+    endHoleOffset = 180-panelDegrees + panelRingDegrees *0.625;
+    difference() {
+        translate([panelRingInnerRadius - 20,0,radius - panelHeight / 2])
+        cube([60, 40, panelHeight], center=true);
+
+        translate([panelRingInnerRadius + 10,0,radius - panelHeight / 2])
+        scale([0.6,1,1])
+        rotate([0,0,45])
+        cube([5, 5, panelHeight+1], center=true);
+
+        translate([panelRingInnerRadius + 10,0,radius - panelHeight / 2])
+        scale([0.6,1,1])
+        rotate([0,45,0])
+        cube([5, 40+1, 5], center=true);
+
+        translate([0,0,1])
+        difference() {
+            cylinder(r=panelRingInnerRadius, h=radius);
+
+            rotate([0,0,-45])
+            linear_extrude(height=radius)
+            import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
+
+        }
+
+        intersection() {
+            sphere(radius - wallThickness/2+insertionTolerance, $fn=$fn);
+            cylinder(r=panelRingInnerRadius + panelRingInnerOverlap + insertionTolerance, h=radius);
+        }
+
+        // visible bolt
+        rotate([0, panelArmBoltDegrees, 0])
+        translate([0, 0, radius + wallThickness])
+        rotate([0, 0, 0])
+        translate([0, 0, -wallThickness * 2])
+        cylinder(r = visibleBoltHole, h=wallThickness * 5, $fn=$fn);
     }
 }
 

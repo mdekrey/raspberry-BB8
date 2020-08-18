@@ -31,24 +31,32 @@ internal class BluetoothGamepads : IAsyncDisposable
                     string[] connectedDevices;
                     do
                     {
-                        connectedDevices = await bluetoothController.GetConnectedBluetoothDevicesAsync(cancellationToken);
+                        connectedDevices = await bluetoothController.GetConnectedBluetoothDevicesAsync(cancellationToken).ConfigureAwait(false);
 
                         foreach (var notConnected in bluetoothGamepadMacAddresses.Except(connectedDevices))
                         {
-                            if (await bluetoothController.ConnectAsync(notConnected, cancellationToken))
+                            if (await bluetoothController.ConnectAsync(notConnected, cancellationToken).ConfigureAwait(false))
                             {
                                 break;
                             }
                         }
-                        await Task.Delay(500);
+                        await Task.Delay(500).ConfigureAwait(false);
                     } while (bluetoothGamepadMacAddresses.Except(connectedDevices).Any());
                 }
             } while (!joysticks.Any());
 
-            observer.OnNext(new Gamepad(joysticks.First()));
+            var joystick = joysticks.First();
+            var macAddress = await bluetoothController.GetMacAddress(joystick, cancellationToken).ConfigureAwait(false);
+            Console.WriteLine($"Joystick {joystick} is {macAddress}");
+            var name = bluetoothGamepadMacAddresses.FirstOrDefault(known => StringComparer.OrdinalIgnoreCase.Equals(known, macAddress));
+            observer.OnNext(new Gamepad(name: name ?? "default", deviceFile: joystick));
 
             return () => { };
         })
+            .Catch((Exception ex) => {
+                Console.WriteLine(ex);
+                return Observable.Throw<IGamepad>(ex);
+            })
             .TakeUntil(disposed)
             .SelectMany(controller => controller.GamepadStateChanged)
             .Buffer(TimeSpan.FromMilliseconds(10), System.Reactive.Concurrency.TaskPoolScheduler.Default)

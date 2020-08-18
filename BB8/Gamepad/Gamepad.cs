@@ -15,23 +15,27 @@ namespace BB8.Gamepad
     public class Gamepad : IGamepad
     {
         public IObservable<(GamepadState state, GamepadEventArgs eventArgs)> GamepadStateChanged { get; }
+        public string? Name { get; }
 
         public static string[] GetDeviceNames()
         {
             return Directory.GetFiles("/dev/input", "js*");
         }
 
-        public Gamepad(string deviceFile = "/dev/input/js0")
+        public Gamepad(string name, string deviceFile = "/dev/input/js0")
         {
             if (!File.Exists(deviceFile))
                 throw new ArgumentException(nameof(deviceFile), $"The device {deviceFile} does not exist");
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException($"'{nameof(name)}' cannot be null or whitespace", nameof(name));
 
             this.GamepadStateChanged =
                 System.Reactive.Linq.Observable.Create(ProcessMessages(deviceFile))
-                    .Scan((state: GamepadState.Empty, eventArgs: ConnectedEventArgs.Instance), (prev, next) => (GamepadState.Apply(prev.state, next), next))
+                    .Scan((state: GamepadState.Empty with { GamepadName = name }, eventArgs: ConnectedEventArgs.Instance), (prev, next) => (GamepadState.Apply(prev.state, next), next))
                     .DistinctUntilChanged()
                     .Replay(1)
                     .RefCount();
+            Name = name;
         }
 
         private Func<IObserver<GamepadEventArgs>, Action> ProcessMessages(string deviceFile)
@@ -62,6 +66,7 @@ namespace BB8.Gamepad
                     }
                     catch (Exception ex)
                     {
+                        observer.OnNext(DisconnectedEventArgs.Instance);
                         observer.OnError(ex);
                     }
                 }, TaskCreationOptions.LongRunning);

@@ -26,9 +26,20 @@
     }
   },
   "gamepad": {
-    "bluetoothDevices": [ "00:0B:E4:81:35:F5" ]
+    "devices": [
+      {
+        "device": { "bluetooth": "00:0B:E4:81:35:F5" },
+        "mapping": {
+          "moveX": { "axis": 2, "axisFactors": { "positive": 4.7619047619047619047619047619048e-5, "negative": 3.3333333333333333333333333333333e-5 } },
+          "moveY": { "axis": 3, "axisFactors": { "positive": 3.5087719298245614035087719298246e-5, "negative": 3.7037037037037037037037037037037e-5 } },
+          "disconnect": { "button": 0 },
+          "exit": { "button": 13 }
+        }
+      },
+      {}
+    ]
   },
-  "bb8": {
+  "bbUnit": {
     "motorOrientation": [ 0, 120, 240 ]
   }
 }

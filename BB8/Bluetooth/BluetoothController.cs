@@ -13,8 +13,10 @@ namespace BB8.Bluetooth
     {
         private const string HciToolCommand = "hcitool";
         private const string BcCommand = "bluetoothctl";
+        private const string UdevAdminCommand = "udevadm";
 
         private static readonly Regex MacAddressPattern = new Regex("([0-9A-F][0-9A-F]:){5}[0-9A-F][0-9A-F]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex MacAddressUdevPattern = new Regex("ATTRS{uniq}==\"(?<mac>([0-9A-Fa-f][0-9A-Fa-f]:){5}[0-9A-Fa-f][0-9A-Fa-f])\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // Swan.ProcessRunner
         // ```hcitool con``` - lists connected devices
@@ -38,7 +40,8 @@ namespace BB8.Bluetooth
             if (!MacAddressPattern.IsMatch(macAddress))
                 throw new InvalidOperationException($"An invalid MAC address was provided: {macAddress}");
 
-            var result = await ProcessRunner.GetProcessResultAsync(BcCommand, $"connect {macAddress}", cancellationToken);
+            var result = await ProcessRunner.GetProcessResultAsync(BcCommand, $"connect {macAddress}", cancellationToken)
+                    .ConfigureAwait(false);
             return result.ExitCode == 0;
         }
 
@@ -47,8 +50,17 @@ namespace BB8.Bluetooth
             if (!MacAddressPattern.IsMatch(macAddress))
                 throw new InvalidOperationException($"An invalid MAC address was provided: {macAddress}");
 
-            var result = await ProcessRunner.GetProcessResultAsync(BcCommand, $"disconnect {macAddress}", cancellationToken);
+            var result = await ProcessRunner.GetProcessResultAsync(BcCommand, $"disconnect {macAddress}", cancellationToken)
+                    .ConfigureAwait(false);
             return result.ExitCode == 0;
+        }
+
+        public async Task<string?> GetMacAddress(string deviceHandle, CancellationToken cancellationToken = default)
+        {
+            var output = await ProcessRunner.GetProcessOutputAsync(UdevAdminCommand, $"info -a {deviceHandle.Replace("/dev", "/sys/class")}", null, cancellationToken)
+                    .ConfigureAwait(false);
+            Console.WriteLine(output);
+            return MacAddressUdevPattern.Match(output)?.Groups["mac"]?.Value;
         }
     }
 }

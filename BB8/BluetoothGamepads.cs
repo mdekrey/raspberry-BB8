@@ -20,7 +20,7 @@ internal class BluetoothGamepads : IAsyncDisposable
         if (!bluetoothGamepadMacAddresses.Any())
             throw new InvalidOperationException("Must provide at least one bluetooth gamepad to use this class.");
 
-        this.CurrentGamepadState = Observable.Create<IGamepad>(async (observer, cancellationToken) =>
+        this.GamepadStateChanges = Observable.Create<IGamepad>(async (observer, cancellationToken) =>
         {
             string[] joysticks;
             do
@@ -51,11 +51,16 @@ internal class BluetoothGamepads : IAsyncDisposable
         })
             .TakeUntil(disposed)
             .SelectMany(controller => controller.GamepadStateChanged)
-            .StartWith(GamepadState.Empty)
-            .Retry();
+            .Buffer(TimeSpan.FromMilliseconds(10), System.Reactive.Concurrency.TaskPoolScheduler.Default)
+            .Where(changes => changes.Any())
+            .Select(stateChanges => (state: stateChanges.Last().state, eventArgs: stateChanges.Select(change => change.eventArgs).ToArray()))
+            .StartWith((state: GamepadState.Empty, eventArgs: Array.Empty<GamepadEventArgs>()))
+            .Retry()
+            .Publish()
+            .RefCount();
     }
 
-    public IObservable<GamepadState> CurrentGamepadState { get; }
+    public IObservable<(GamepadState state, GamepadEventArgs[] eventArgs)> GamepadStateChanges { get; }
 
     public async ValueTask DisposeAsync()
     {

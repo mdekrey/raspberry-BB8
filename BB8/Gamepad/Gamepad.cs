@@ -14,7 +14,7 @@ namespace BB8.Gamepad
 
     public class Gamepad : IGamepad
     {
-        public IObservable<GamepadState> GamepadStateChanged { get; }
+        public IObservable<(GamepadState state, GamepadEventArgs eventArgs)> GamepadStateChanged { get; }
 
         public static string[] GetDeviceNames()
         {
@@ -28,7 +28,7 @@ namespace BB8.Gamepad
 
             this.GamepadStateChanged =
                 System.Reactive.Linq.Observable.Create(ProcessMessages(deviceFile))
-                    .Scan(GamepadState.Empty, GamepadState.Apply)
+                    .Scan((state: GamepadState.Empty, eventArgs: ConnectedEventArgs.Instance), (prev, next) => (GamepadState.Apply(prev.state, next), next))
                     .DistinctUntilChanged()
                     .Replay(1)
                     .RefCount();

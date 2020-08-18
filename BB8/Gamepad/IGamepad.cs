@@ -4,6 +4,6 @@ namespace BB8.Gamepad
 {
     public interface IGamepad
     {
-        IObservable<GamepadState> GamepadStateChanged { get; }
+        IObservable<(GamepadState state, GamepadEventArgs eventArgs)> GamepadStateChanged { get; }
     }
 }

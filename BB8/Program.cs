@@ -42,19 +42,19 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, mo
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine(DateTime.Now.ToString());
 
-        var controllerUpdates = bluetoothGamepads.CurrentGamepadState
-            .Do(gamepad => Console.WriteLine(gamepad))
+        var controllerUpdates = bluetoothGamepads.GamepadStateChanges
+            .Do(gamepad => Console.WriteLine(gamepad.state))
             .Do(gamepad =>
             {
-                if (gamepad.Buttons.TryGetValue(3, out var pressed) && pressed)
+                if (gamepad.eventArgs.Any(change => change is ButtonEventArgs(3, true)))
                 {
                     Task.Run(() => bluetoothController.DisconnectAsync(bluetoothGamepadMacAddresses.First()));
                 }
             })
-            .TakeUntil(gamepad => gamepad.Buttons.TryGetValue(0, out var pressed) ? pressed : false)
+            .TakeUntil(gamepad => gamepad.eventArgs.Any(change => change is ButtonEventArgs(0, true)))
             .Do(gamepad =>
             {
-                motors[0].Motor.Update((gamepad.Axis.TryGetValue(axisIndex, out var axis) ? axis : 0) switch
+                motors[0].Motor.Update((gamepad.state.Axis.TryGetValue(axisIndex, out var axis) ? axis : 0) switch
                 {
                     0 => new MotorState { Direction = MotorDirection.Stopped },
                     > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = axis / (double)short.MaxValue },

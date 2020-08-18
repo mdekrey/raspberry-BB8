@@ -75,14 +75,18 @@ at 0, moving to the left for increasing numbers.
 
 Serial data repeats 8 bits to enable/disable the motors.
 
-0. M3 forward (hex 0x01)
+0. M4 forward (hex 0x01)
 1. M2 forward (hex 0x02)
 2. M1 forward (hex 0x04)
 3. M1 backward (hex 0x08)
 4. M2 backward (hex 0x10)
-5. M4 forward (hex 0x20)
-6. M3 backward (hex 0x40)
-7. M4 backward (hex 0x80)
+5. M3 forward (hex 0x20)
+6. M4 backward (hex 0x40)
+7. M3 backward (hex 0x80)
+
+Note here that the board is labelled M3 at the bottom, and the schematic said
+that 5/7 went to M4. I chose to keep what was printed on my board rather than
+what the schematic said.
 
 ### Analog In
 

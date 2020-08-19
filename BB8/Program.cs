@@ -64,7 +64,6 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, mo
             {
                 foreach (var entry in motorDirection.Zip(motors, (direction, motor) => (direction, motor: motor.Motor)))
                 {
-                    Console.WriteLine(direction.Dot(entry.direction));
                     entry.motor.Update(direction.Dot(entry.direction) switch
                     {
                         var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },

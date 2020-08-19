@@ -2,7 +2,7 @@
   "motion": {
     "Motors": [
       {
-        "PwmGpioPin": 4,
+        "PwmGpioPin": 23,
         "ForwardBit": 7,
         "BackwardBit": 5
       },
@@ -12,7 +12,7 @@
         "BackwardBit": 3
       },
       {
-        "PwmGpioPin": 23,
+        "PwmGpioPin": 4,
         "ForwardBit": 1,
         "BackwardBit": 4
       }
@@ -40,6 +40,6 @@
     ]
   },
   "bbUnit": {
-    "motorOrientation": [ 0, 120, 240 ]
+    "motorOrientation": [ 120, 0, 240 ]
   }
 }

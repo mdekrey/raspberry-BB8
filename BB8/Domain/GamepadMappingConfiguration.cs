@@ -55,7 +55,7 @@ namespace BB8.Domain
 
 
         public override string ToString() =>
-            $"{GamepadName}: {string.Join(", ", Axes.Select(axis => $"{axis.Key}: {axis.Value,6}").Concat(Buttons.Select(button => $"{button.Key}: {button.Value,6}")))}";
+            $"{GamepadName}: {string.Join(", ", Axes.Select(axis => $"{axis.Key}: {axis.Value:0.0000}").Concat(Buttons.Select(button => $"{button.Key}: {button.Value,6}")))}";
     }
 
     public abstract record MappedGamepadEventArgs(GamepadEventArgs Original) { }

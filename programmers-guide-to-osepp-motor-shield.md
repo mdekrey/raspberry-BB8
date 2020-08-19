@@ -57,19 +57,23 @@ at 0, moving to the left for increasing numbers.
 0. Unused (Schema is blank)
 1. Unused (Schema is blank)
 2. Unused (Schema is blank)
-3. Phase Width Modulation of Motor 2 (TBD) (Schema is PWM2B)
+3. Phase Width Modulation of Motor 2 (Schema is PWM2B)
 4. Serial Clock Pin (Schema is DIR_CLK)
-5. Phase Width Modulation of Motor 3 (TBD) (Schema is PWM0B)
-6. Phase Width Modulation of Motor 4 (TBD) (Schema is PWM0A)
+5. Phase Width Modulation of Motor 4 (TBD) (Schema is PWM0B)
+6. Phase Width Modulation of Motor 3 (TBD) (Schema is PWM0A)
 7. Ground, essentially. This is the "output enable" toggle, but negated due to the original chip. (TBD, how do you say this out loud?) (Schema is labelled DIR_EN)
 8. Serial Data Pin (Schema is DIR_SER)
 9. Phase Width Modulation of Servo 2 (TODO - verify) (Schema is PWM1A)
 10. Phase Width Modulation of Servo 1 (TODO - verify) (Schema is PWM1B)
-11. Phase Width Modulation of Motor 1 (TBD) (Schema is PWM2A)
+11. Phase Width Modulation of Motor 1 (Schema is PWM2A)
 12. Serial Latch (Schema is DIR_LATCH)
 13. Unused (Schema is blank)
 14. (labelled `gnd`) Ground
 15. (labelled `ARef`) Unused
+
+Note here that the board is labelled M3 at the bottom, and the schematic said
+that 5 went to M3 and 6 went to M4. I chose to keep what was printed on my board
+rather than what the schematic said.
 
 #### Serial Data
 

@@ -59,8 +59,10 @@ namespace BB8.Bluetooth
         {
             var output = await ProcessRunner.GetProcessOutputAsync(UdevAdminCommand, $"info -a {deviceHandle.Replace("/dev", "/sys/class")}", null, cancellationToken)
                     .ConfigureAwait(false);
-            Console.WriteLine(output);
-            return MacAddressUdevPattern.Match(output)?.Groups["mac"]?.Value;
+            var result = MacAddressUdevPattern.Match(output)?.Groups["mac"]?.Value;
+            if (result is not { Length: > 0 })
+                Console.WriteLine(BitConverter.ToString(Encoding.ASCII.GetBytes(output)).Replace("-", string.Empty));
+            return result;
         }
     }
 }

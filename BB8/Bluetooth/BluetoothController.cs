@@ -15,8 +15,9 @@ namespace BB8.Bluetooth
         private const string BcCommand = "bluetoothctl";
         private const string UdevAdminCommand = "udevadm";
 
-        private static readonly Regex MacAddressPattern = new Regex("([0-9A-F][0-9A-F]:){5}[0-9A-F][0-9A-F]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex MacAddressUdevPattern = new Regex("ATTRS{uniq}==\"(?<mac>([0-9A-Fa-f][0-9A-Fa-f]:){5}[0-9A-Fa-f][0-9A-Fa-f])\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        // These Regex, when compiled, did not always match. I'm not sure why.
+        private static readonly Regex MacAddressPattern = new Regex("([0-9A-F][0-9A-F]:){5}[0-9A-F][0-9A-F]", RegexOptions.IgnoreCase);
+        private static readonly Regex MacAddressUdevPattern = new Regex("ATTRS{uniq}==\"(?<mac>([0-9A-Fa-f][0-9A-Fa-f]:){5}[0-9A-Fa-f][0-9A-Fa-f])\"", RegexOptions.IgnoreCase);
 
         // Swan.ProcessRunner
         // ```hcitool con``` - lists connected devices
@@ -59,10 +60,7 @@ namespace BB8.Bluetooth
         {
             var output = await ProcessRunner.GetProcessOutputAsync(UdevAdminCommand, $"info -a {deviceHandle.Replace("/dev", "/sys/class")}", null, cancellationToken)
                     .ConfigureAwait(false);
-            var result = MacAddressUdevPattern.Match(output)?.Groups["mac"]?.Value;
-            if (result is not { Length: > 0 })
-                Console.WriteLine(BitConverter.ToString(Encoding.ASCII.GetBytes(output)).Replace("-", string.Empty));
-            return result;
+            return MacAddressUdevPattern.Match(output)?.Groups["mac"]?.Value;
         }
     }
 }

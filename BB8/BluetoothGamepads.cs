@@ -41,7 +41,10 @@ internal class BluetoothGamepads : IAsyncDisposable
                                 break;
                             }
                         }
-                        // Raspberry Pi 3 models cannot run wifi and bluetooth at the same time. This delay attempts to keep wifi alive for remote control. TODO - upgrade and remove.
+                        // Raspberry Pi 3 models have power issues constantly
+                        // trying to connect bluetooth. This short delay doesn't
+                        // seem to affect my controller, but helps the Pi
+                        // immensley.
                         Console.WriteLine("Delay connecting bluetooth...");
                         await Task.Delay(500).ConfigureAwait(false);
                     } while (bluetoothGamepadMacAddresses.Except(connectedDevices).Any());

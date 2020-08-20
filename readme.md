@@ -14,6 +14,11 @@ I'm using:
 
     ![OSEPP Motor and Servo Shield v1.0 Schematic](./schematics/OSEPP_motor_shield_v1-0.svg)
 
+## Warnings and Pitfalls
+
+- The Raspberry Pi 3 model B has a power management issue running the onboard wifi and bluetooth at the same time. Disable wifi if you're using the bluetooth controller, or use external dongles for either. When using wifi, the bluetooth controllers would intermittently not connect, etc.
+- The OSEPP Motor and Servo Shield v1.0 Schematic had M3 and M4 reversed from what was printed on my board, and only really came with schematics for the underlying chips. See [my Programmer's Guide for the OSEPP Motor and Servo Shield](./programmers-guide-to-osepp-motor-shield.md).
+
 ## Building
 
 1. Package the BB8 project in this repository using `dotnet`.

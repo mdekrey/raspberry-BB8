@@ -31,11 +31,12 @@ rotate([0,0,90])
 translate([0,0, panelHeight - radius])
 union() {
     *panel();
-    panelMainTop(4, true);
-    panelMainTop(4, false);
-    panelMainBottom(4, true);
-    panelMainBottom(4, false);
-    panelDesignCurved(4);
+    panelMainTop(5, true);
+    panelMainTop(5, false);
+    panelMainBottom(5, true);
+    panelMainBottom(5, false);
+    panelDesignCurved(5);
+
 }
 
 *rotate([180, 0, 0])

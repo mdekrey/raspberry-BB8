@@ -136,8 +136,13 @@ module panelMainBottom(panelDesign, largeSize /* = true */) {
 
 module panelDesign(panelNumber) {
     intersection() {
-        resize(newsize = [panelRingInnerRadius*2,panelRingInnerRadius*2])
-        import(str("tool-panel-",panelNumber,".svg"), center=true, dpi=200);
+        difference() {
+            resize(newsize = [panelRingInnerRadius*2,panelRingInnerRadius*2])
+            import(str("tool-panel-",panelNumber,".svg"), center=true, dpi=200);
+
+            offset(r=insertionTolerance)
+            import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
+        }
 
         translate([panelRingInnerRadius*2 / 200, -panelRingInnerRadius*2 / 200])
         square([panelRingInnerRadius*2, panelRingInnerRadius*2], center=true);

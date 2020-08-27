@@ -181,19 +181,31 @@ module circuitryBracket() {
 
 }
 
+module batteryZipTieHoles() {
+    for (x = [-0.35, 0.35])
+        for (y = [-0.5, 0.5])
+            translate([x * batteryDimensions.x, y * (batteryDimensions.y + batterySpaceBetween)])
+            children();
+
+    for (i = [[-0.5, -1/3],[-0.5,1/3], [0.5,0.2], [0.5,-0.2]])
+        translate([i.x * (batteryDimensions.x + batterySpaceBetween), i.y * batteryDimensions.y])
+        rotate(90)
+        children();
+
+}
+
 batteryBuffer = 10;
 batteryBracketThickness = motorBracketThickness;
 batteryLowerBracketThickness = 3;
-module batteryBracket() {
-    spaceBetween = zipTieHole.y * 3;
-    innerHeight = centerPlatformMiddleRadius * sin(120) * 2;
-    batteryBaseDimensions = [batteryDimensions.x, batteryDimensions.y];
+batterySpaceBetween = zipTieHole.y * 3;
+batteryInnerHeight = centerPlatformMiddleRadius * sin(120) * 2;
+module batteryAnchor() {
 
     color("grey")
     linear_extrude(height = batteryBracketThickness)
     difference() {
         offset(r = outerRadiusPi)
-        square([batteryDimensions.x + spaceBetween * 2, max(batteryDimensions.y, innerHeight) + outerRadiusPi + spaceBetween], center=true);
+        square([batteryDimensions.x + batterySpaceBetween * 2, max(batteryDimensions.y, batteryInnerHeight) + outerRadiusPi + batterySpaceBetween], center=true);
 
 
         triangles([-sin(45) * centerPlatformMiddleRadius, -sin(45) * centerPlatformMiddleRadius], [sin(45) * centerPlatformMiddleRadius, sin(45) * centerPlatformMiddleRadius], 6);
@@ -203,43 +215,27 @@ module batteryBracket() {
             translate([centerPlatformMiddleRadius, 0])
             circle(r=m3holeRadius + insertionTolerance);
 
-        for (x = [-0.35, 0.35])
-            for (y = [-0.5, 0.5])
-                translate([x * batteryDimensions.x, y * (batteryDimensions.y + spaceBetween)])
-                square(zipTieHole, center = true);
-
-        for (x = [-0.5])
-            for (y = [-0.4, 0.4])
-                translate([x * (batteryDimensions.x + spaceBetween), y * batteryDimensions.y])
-                rotate(90)
-                square(zipTieHole, center = true);
+        batteryZipTieHoles()
+        square(zipTieHole, center = true);
     }
 
+}
+
+module batteryBracket() {
+    batteryBaseDimensions = [batteryDimensions.x, batteryDimensions.y];
+
     color("blue")
-    translate([0,0, - batteryLowerBracketThickness - motorBracketThickness - insertionTolerance * 2])
+    translate([0,0,-batteryLowerBracketThickness])
     {
         linear_extrude(height = batteryLowerBracketThickness)
         difference() {
             offset(r = outerRadiusPi)
-            square([batteryDimensions.x + spaceBetween * 2, max(batteryDimensions.y, innerHeight) + outerRadiusPi + spaceBetween], center=true);
+            square([batteryDimensions.x + batterySpaceBetween * 2, max(batteryDimensions.y, batteryInnerHeight) + outerRadiusPi + batterySpaceBetween], center=true);
 
             triangles(-batteryBaseDimensions/2, batteryBaseDimensions/2, batteryBraceThickness);
 
-            for (i = [0,120,240])
-                rotate(i)
-                translate([centerPlatformMiddleRadius, 0])
-                circle(r=m3holeRadius + insertionTolerance);
-
-            for (x = [-0.35, 0.35])
-                for (y = [-0.5, 0.5])
-                    translate([x * batteryDimensions.x, y * (batteryDimensions.y + spaceBetween)])
-                    square(zipTieHole, center = true);
-
-            for (x = [-0.5])
-                for (y = [-0.4, 0.4])
-                    translate([x * (batteryDimensions.x + spaceBetween), y * batteryDimensions.y])
-                    rotate(90)
-                    square(zipTieHole, center = true);
+            batteryZipTieHoles()
+            square(zipTieHole, center = true);
         }
 
         translate([0,0, -batteryBuffer])
@@ -254,8 +250,8 @@ module batteryBracket() {
         }
 
         batteryBraceThickness = 6;
-        translate([0,0, -batteryBuffer-3])
-        linear_extrude(height = batteryBuffer+3)
+        translate([0,0, -batteryBuffer-batteryBraceThickness])
+        linear_extrude(height = batteryBuffer+batteryBraceThickness)
         difference()
         {
             union() {
@@ -267,22 +263,8 @@ module batteryBracket() {
                     square([batteryDimensions.x+batteryBraceThickness*2, batteryBraceThickness], center=true);
             }
 
-            for (i = [0,120,240])
-                rotate(i)
-                translate([centerPlatformMiddleRadius, 0])
-                rotate(-i)
-                square([9,9], center=true);
-
-            for (x = [-0.35, 0.35])
-                for (y = [-0.5, 0.5])
-                    translate([x * batteryDimensions.x, y * (batteryDimensions.y + spaceBetween)])
-                    square([9,9], center=true);
-
-            for (x = [-0.5])
-                for (y = [-0.4, 0.4])
-                    translate([x * (batteryDimensions.x + spaceBetween), y * batteryDimensions.y])
-                    rotate(90)
-                    square([9,9], center=true);
+            batteryZipTieHoles()
+            square([9,9], center=true);
         }
 
         translate([0,0, -batteryBuffer - batteryDimensions.y - insertionTolerance])
@@ -291,20 +273,12 @@ module batteryBracket() {
             difference()
             {
                 offset(r = outerRadiusPi)
-                square([batteryDimensions.x + spaceBetween * 2, max(batteryDimensions.y, innerHeight) + outerRadiusPi + spaceBetween], center=true);
+                square([batteryDimensions.x + batterySpaceBetween * 2, max(batteryDimensions.y, batteryInnerHeight) + outerRadiusPi + batterySpaceBetween], center=true);
 
                 triangles(-batteryBaseDimensions/2, batteryBaseDimensions/2, batteryBraceThickness);
 
-                for (x = [-0.35, 0.35])
-                    for (y = [-0.5, 0.5])
-                        translate([x * batteryDimensions.x, y * (batteryDimensions.y + spaceBetween)])
-                        square(zipTieHole, center=true);
-
-                for (x = [-0.5])
-                    for (y = [-0.4, 0.4])
-                        translate([x * (batteryDimensions.x + spaceBetween), y * batteryDimensions.y])
-                        rotate(90)
-                        square(zipTieHole, center=true);
+                batteryZipTieHoles()
+                square(zipTieHole, center=true);
             }
             linear_extrude(height = batteryBuffer+3+batteryLowerBracketThickness)
             difference()
@@ -318,22 +292,14 @@ module batteryBracket() {
                         square([batteryDimensions.x+batteryBraceThickness*2, batteryBraceThickness], center=true);
                 }
 
-                for (x = [-0.35, 0.35])
-                    for (y = [-0.5, 0.5])
-                        translate([x * batteryDimensions.x, y * (batteryDimensions.y + spaceBetween)])
-                        square([9,9], center=true);
-
-                for (x = [-0.5])
-                    for (y = [-0.4, 0.4])
-                        translate([x * (batteryDimensions.x + spaceBetween), y * batteryDimensions.y])
-                        rotate(90)
-                        square([9,9], center=true);
+                batteryZipTieHoles()
+                square([9,9], center=true);
             }
         }
     }
 
 
-    %translate([0,0,-batteryDimensions.z / 2 - batteryLowerBracketThickness - motorBracketThickness - batteryBuffer - insertionTolerance * 3])
+    %translate([0,0,-batteryDimensions.z / 2 - batteryBuffer - insertionTolerance - batteryLowerBracketThickness])
     battery();
 }
 
@@ -537,6 +503,9 @@ translate([0,0, -bottomRiding])
     circuitryBracket();
 
     translate([0, 0, motorSizeUp + motorBracketThickness + insertionTolerance])
+    batteryAnchor();
+
+    translate([0,0, motorSizeUp - insertionTolerance])
     batteryBracket();
 
     %for (i = [0,1,2]) {
@@ -553,14 +522,18 @@ translate([0,0, -bottomRiding])
             //rotate([0,0,i])
             motorBracket();
 
-    *translate([0,0,bottomRiding])
-    %difference() {
-        *sphere(r=bb8OuterRadius, $fn=120);
+    %translate([0,0,bottomRiding])
+    difference() {
+        sphere(r=bb8OuterRadius, $fn=120);
         sphere(r=bb8Radius, $fn=120);
 
         *cylinder(center=true, r=bb8OuterRadius * sin(35), h=bb8OuterRadius*2);
         *rotate([90,0,0]) cylinder(center=true, r=bb8OuterRadius * sin(35), h=bb8OuterRadius*2);
         *rotate([0,90,0]) cylinder(center=true, r=bb8OuterRadius * sin(35), h=bb8OuterRadius*2);
+
+        translate([0,0,-bottomRiding])
+        translate([0,0,bb8OuterRadius])
+        cube([1,1,1]*bb8OuterRadius*2, center=true);
     }
 }
 

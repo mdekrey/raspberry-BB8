@@ -71,6 +71,7 @@ arcRadius = sqrt((arcCenter - motorCenter) * (arcCenter - motorCenter));
 batteryDimensions = [152, 3.86*25.4, 3.7*25.4];
 batteryDimensionsHalf = batteryDimensions / 2;
 batteryCaseThickness = 3;
+circuitryToBatteryBracketMounts = [-0.4, 0, 0.4] * batteryDimensions.x;
 
 centerPlatformMiddleRadius = 70 - armThickness;
 
@@ -101,12 +102,12 @@ module arduinoHoles(availableHoles = [0,1,2,3], arduinoCoord = arduinoCoord) {
     holes = [[550, 100],[2600, 300],[2600, 1400],[600, 2000]];
 
     for (index = availableHoles)
-    translate([holes[index][0] * arduinoCoord, holes[index][1] * arduinoCoord])
+    translate(holes[index] * arduinoCoord)
     children();
 }
 
 module arduinoBoard(availableHoles = [0,1,2,3]) {
-    linear_extrude(height = boardThickness)
+    linear_extrude(height = 18, center=true)
     scale([arduinoCoord, arduinoCoord])
     difference()
     {
@@ -117,68 +118,94 @@ module arduinoBoard(availableHoles = [0,1,2,3]) {
     }
 }
 
+circuitrySpaceBetween = zipTieHole.y * 3;
+module circuitryBracketHoles() {
+
+    translate([circuitrySpaceBetween/2 + piBoard.y, -piBoard.x / 2,10])
+    rotate([0,0,90])
+    {
+        piHoles()
+        circle(r=m3holeRadius + insertionTolerance);
+
+        triangles([outerRadiusPi, outerRadiusPi], [xBetweenPi+outerRadiusPi, yBetweenPi+outerRadiusPi], 3);
+    }
+
+    translate([-circuitrySpaceBetween/2,0,10])
+    translate([-arduinoBoard.x, piBoard.x / 2, 0])
+    {
+        rotate([180,0,0])
+        arduinoHoles([1,3])
+        circle(r=m3holeRadius + insertionTolerance);
+
+        translate([0, -arduinoBoard.y, 0])
+        arduinoHoles([1,3])
+        circle(r=m3holeRadius + insertionTolerance);
+    }
+}
+
+module board() {
+    difference() {
+        offset(r = outerRadiusPi)
+        hull() {
+            children();
+        }
+
+        children();
+    }
+}
+
 module circuitryBracket() {
-    innerHeight = centerPlatformMiddleRadius * sin(120) * 2;
     separatorHeight = 2;
-    spaceBetween = zipTieHole.y * 3;
 
     midSpace = 20;
     topSpace = 16;
 
     color("green")
     linear_extrude(height = separatorHeight)
-    difference() {
-        offset(r = outerRadiusPi)
-        square([anker.y + piBoard.y + arduinoBoard.y + spaceBetween * 3, max(anker.x, piBoard.x, arduinoBoard.x, innerHeight + outerRadiusPi)], center=true);
-
-        rotate([0,0,-90])
-        triangles(anker / -2, anker / 2, 6);
-
-        translate([anker.y / -2 - spaceBetween,0,0])
-        rotate([0,0,-90])
-        translate([piBoard.x / -2,-piBoard.y,0])
-        {
-            piHoles()
-            circle(r=m3holeRadius + insertionTolerance);
-
-            triangles([outerRadiusPi, outerRadiusPi], [xBetweenPi+outerRadiusPi, yBetweenPi+outerRadiusPi], 3);
-        }
-
-        translate([anker.y / 2 + spaceBetween,0,0])
-        rotate([180,0,90])
-        translate([-arduinoBoard.x / 2, 0, 0])
-        arduinoHoles()
-        circle(r=m3holeRadius + insertionTolerance);
-
-        for (i = [0,120,240])
-            rotate(i)
-            translate([centerPlatformMiddleRadius, 0])
-            circle(r=m3holeRadius + insertionTolerance);
-
-        for (x = [-0.5, 0.5])
-            for (y = [-0.35, 0, 0.35])
-                translate([x * (anker.y + spaceBetween), y * anker.x])
-                rotate(90)
-                square(zipTieHole, center=true);
+    board() {
+        circuitryBracketHoles();
+        children();
     }
 
     %translate([0,0, separatorHeight + insertionTolerance * 2])
     union() {
-        translate([anker.y / -2 - spaceBetween,0,10])
-        rotate([0,0,-90])
-        translate([piBoard.x / -2,-piBoard.y,0])
+        translate([circuitrySpaceBetween/2 + piBoard.y, -piBoard.x / 2,10])
+        rotate([0,0,90])
         piBoard();
 
-        translate([anker.y / 2 + spaceBetween,0,10])
-        rotate([180,0,90])
-        translate([-arduinoBoard.x / 2, 0, 0])
-        arduinoBoard([1,3]);
+        translate([-circuitrySpaceBetween/2,0,10])
+        translate([-arduinoBoard.x, piBoard.x / 2, 0])
+        {
+            rotate([180,0,0])
+            *arduinoBoard([1,3]);
 
-        rotate([0,0,90])
-        translate([anker.x / -2, anker.y / -2, 0])
-        phoneBattery();
+            translate([0, -arduinoBoard.y, 0])
+            arduinoBoard([1,3]);
+        }
     }
 
+}
+
+module ankerBracket() {
+    separatorHeight = 2;
+    color("green")
+    linear_extrude(height = separatorHeight)
+    board() {
+        rotate([0,0,-90])
+        triangles(anker / -2, anker / 2, 6);
+
+        for (x = [-0.5, 0.5])
+            for (y = [-0.35, 0, 0.35])
+                translate([x * anker.y, y * anker.x])
+                rotate(90)
+                square(zipTieHole, center=true);
+        children();
+    }
+
+    %translate([0,0, separatorHeight + insertionTolerance * 2])
+    rotate(90)
+    translate([anker.x, anker.y, 0] * -0.5)
+    phoneBattery();
 }
 
 module batteryZipTieHoles() {
@@ -210,6 +237,11 @@ module batteryAnchor() {
 
         triangles([-sin(45) * centerPlatformMiddleRadius, -sin(45) * centerPlatformMiddleRadius], [sin(45) * centerPlatformMiddleRadius, sin(45) * centerPlatformMiddleRadius], 6);
 
+        for (i = [0,90,180,270])
+            rotate(i)
+            translate([sin(45) * centerPlatformMiddleRadius, 0])
+            circle(r=m3holeRadius + insertionTolerance);
+
         for (i = [0,120,240])
             rotate(i)
             translate([centerPlatformMiddleRadius, 0])
@@ -221,6 +253,7 @@ module batteryAnchor() {
 
 }
 
+batteryBraceThickness = 6;
 module batteryBracket() {
     batteryBaseDimensions = [batteryDimensions.x, batteryDimensions.y];
 
@@ -249,22 +282,33 @@ module batteryBracket() {
             square([batteryDimensions.x, 6], center=true);
         }
 
-        batteryBraceThickness = 6;
         translate([0,0, -batteryBuffer-batteryBraceThickness])
-        linear_extrude(height = batteryBuffer+batteryBraceThickness)
-        difference()
-        {
-            union() {
-                translate([(batteryDimensions.x + batteryBraceThickness) / 2 + insertionTolerance, 0])
-                square([batteryBraceThickness, batteryDimensions.y+batteryBraceThickness*2], center=true);
+        difference() {
+            linear_extrude(height = batteryBuffer+batteryBraceThickness)
+            difference()
+            {
+                union() {
+                    translate([(batteryDimensions.x + batteryBraceThickness) / 2 + insertionTolerance, 0])
+                    square([batteryBraceThickness, batteryDimensions.y+batteryBraceThickness*2], center=true);
 
-                for (i = [-1, 1])
-                    translate([0, i * ((batteryDimensions.y + batteryBraceThickness) / 2 + insertionTolerance)])
-                    square([batteryDimensions.x+batteryBraceThickness*2, batteryBraceThickness], center=true);
+                    for (i = [-1, 1])
+                        translate([0, i * ((batteryDimensions.y + batteryBraceThickness) / 2 + insertionTolerance)])
+                        square([batteryDimensions.x+batteryBraceThickness*2, batteryBraceThickness], center=true);
+                }
+
+                batteryZipTieHoles()
+                square([9,9], center=true);
             }
 
-            batteryZipTieHoles()
-            square([9,9], center=true);
+            for (i = circuitryToBatteryBracketMounts)
+                for (x = [-1, 1])
+                    translate([
+                        i,
+                        ((batteryDimensions.y + batteryBraceThickness) / 2 + insertionTolerance) * x,
+                        (batteryBuffer+batteryBraceThickness) - (outerRadiusPi + m3holeRadius + insertionTolerance * 3)
+                    ])
+                    rotate([90,0,0])
+                    cylinder(r=m3holeRadius + insertionTolerance, h=batteryBraceThickness * 2, center=true);
         }
 
         translate([0,0, -batteryBuffer - batteryDimensions.y - insertionTolerance])
@@ -499,8 +543,45 @@ module motorBracket() {
 
 translate([0,0, -bottomRiding])
 {
-    translate([0, 0, motorSizeUp + batteryBracketThickness + motorBracketThickness + insertionTolerance + 5])
-    circuitryBracket();
+    translate(
+        [
+            0,
+            batteryDimensions.y / 2 + batteryBraceThickness + insertionTolerance *2 + 5,
+            motorSizeUp
+            - piBoard.x / 2 - circuitrySpaceBetween
+            - (m3holeRadius - insertionTolerance) * 2 - outerRadiusPi
+            - batteryLowerBracketThickness
+            - insertionTolerance
+        ]
+
+    )
+    rotate([-90,0,0])
+    circuitryBracket()
+    {
+        for (i = circuitryToBatteryBracketMounts)
+            translate([i, -piBoard.x / 2 - circuitrySpaceBetween])
+            circle(r=m3holeRadius + insertionTolerance);
+    };
+
+    ankerBracketAdjustment = [10,0,-12];
+    translate(
+        [
+            0,
+            -batteryDimensions.y / 2 - batteryBraceThickness - insertionTolerance *2 - 5,
+            motorSizeUp
+            - piBoard.x / 2 - circuitrySpaceBetween
+            - (m3holeRadius - insertionTolerance) * 2 - outerRadiusPi
+            - batteryLowerBracketThickness
+            - insertionTolerance
+        ] + ankerBracketAdjustment
+    )
+    rotate([90,90,0])
+    ankerBracket()
+    {
+        for (i = circuitryToBatteryBracketMounts)
+            translate([-piBoard.x / 2 - circuitrySpaceBetween + ankerBracketAdjustment.z, i - ankerBracketAdjustment.x])
+            circle(r=m3holeRadius + insertionTolerance);
+    }
 
     translate([0, 0, motorSizeUp + motorBracketThickness + insertionTolerance])
     batteryAnchor();

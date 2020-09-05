@@ -27,7 +27,7 @@ panelRingInnerActualDegrees = asin((panelRingInnerRadius - insertionTolerance) /
 panelRingInnerInternalDegrees = asin((panelRingInnerRadius + panelRingInnerOverlap - insertionTolerance)
     / (radius - wallThickness));
 panelHeight = radius - cos(panelRingInnerInternalDegrees) * (radius - wallThickness);
-ringThickness = cos(panelRingInnerActualDegrees) * radius - cos(panelRingInnerInternalDegrees) * (radius - wallThickness);
+ringThickness = cos(panelRingInnerActualDegrees) * radius - cos(panelRingInnerInternalDegrees) * (radius - wallThickness) - 0.8;
 
 panelDesignDepth = radius - cos(asin((panelRingInnerRadius * 0.92) / radius)) * radius + insertionTolerance;
 panelDesignRadius = wallThickness - 0.2 * millisPerInch;
@@ -75,7 +75,7 @@ module panelRing() {
 panelAdditionalWallThickness = 0; // cos(panelDegrees) * maxLip;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;
 panelLayerWall = radius - (radius - panelInnerWall) * 0.6;
-module panel(panelDesign, includeInternalBolts = false) {
+module panel(includeInternalBolts = false) {
     difference() {
         rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset])
         intersection() {
@@ -104,7 +104,11 @@ module panel(panelDesign, includeInternalBolts = false) {
 
         }
 
-        panelDesignEmboss(panelDesign);
+    difference() {
+        children();
+
+        sphere(r=radius - panelDesignRadius, $fn=$fnDetail);
+    }
 
         for (i = [0 : 90 : 360]) {
             rotate([0, panelArmBoltDegrees, i])
@@ -115,21 +119,25 @@ module panel(panelDesign, includeInternalBolts = false) {
     }
 }
 
-module panelMainTop(panelDesign, largeSize /* = true */) {
+module panelMainTop(largeSize /* = true */) {
     intersection() {
-        panel(panelDesign);
+        panel() children();
 
         translate([
-            (largeSize ? -radius : radius + insertionTolerance) + panelOverlapFactor, 0,
+            0, 0,
             radius * 2 - panelHeight + ringThickness])
+        rotate([0,0,90 + 20 + (largeSize ? 180 : 0)])
+        translate([radius + insertionTolerance / 2, 0, 0])
         cube([radius * 2, radius*2, radius*2], center=true);
     }
 }
 
-module panelMainBottom(panelDesign, largeSize /* = true */) {
+module panelMainBottom(largeSize /* = true */) {
     intersection() {
-        panel(panelDesign);
-        translate([(largeSize ? radius : -radius - insertionTolerance) - panelOverlapFactor, 0, -panelHeight + ringThickness - insertionTolerance])
+        panel() children();
+        translate([0, 0, -panelHeight + ringThickness - insertionTolerance])
+        rotate([0,0,20 + (largeSize ? 180 : 0)])
+        translate([radius + insertionTolerance / 2, 0, 0])
         cube([radius * 2, radius*2, radius*2], center=true);
     }
 }
@@ -150,16 +158,12 @@ module panelDesign(panelNumber) {
 }
 
 module panelDesignEmboss(panelDesign) {
-    difference() {
         rotate(45)
         translate([0,0, radius - panelDesignDepth])
         linear_extrude(height=panelDesignDepth)
         offset(insertionTolerance)
         panelDesign(panelDesign);
 
-        sphere(r=radius - panelDesignRadius, $fn=$fnDetail);
-
-    }
 }
 
 module panelDesignCurved(panelDesign) {

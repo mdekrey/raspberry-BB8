@@ -39,3 +39,6 @@ I'm using:
 
     `sudo` is necessary to use the hardware PWM features.
 
+## Setup
+
+Once you have the code built, you'll need to set up your configuration. By pairing a device

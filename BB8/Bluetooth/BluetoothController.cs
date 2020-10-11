@@ -19,14 +19,9 @@ namespace BB8.Bluetooth
         private static readonly Regex MacAddressPattern = new Regex("([0-9A-F][0-9A-F]:){5}[0-9A-F][0-9A-F]", RegexOptions.IgnoreCase);
         private static readonly Regex MacAddressUdevPattern = new Regex("ATTRS{uniq}==\"(?<mac>([0-9A-Fa-f][0-9A-Fa-f]:){5}[0-9A-Fa-f][0-9A-Fa-f])\"", RegexOptions.IgnoreCase);
 
-        // Swan.ProcessRunner
         // ```hcitool con``` - lists connected devices
         // ```bluetoothctl connect 00:0B:E4:81:35:F5``` - tries to connect to a specified device
         // ```bluetoothctl disconnect 00:0B:E4:81:35:F5``` - tries to disconnect from a specified device
-        //var controllers = await Pi.Bluetooth.ListControllers();
-        // await Pi.Bluetooth.Connect(controllers.First(), "00:0B:E4:81:35:F5");
-        //await Pi.Bluetooth.DeviceInfo("00:0B:E4:81:35:F5");
-        //return;
 
         public async Task<string[]> GetConnectedBluetoothDevicesAsync(CancellationToken cancellationToken = default)
         {

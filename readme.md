@@ -23,9 +23,9 @@ I'm using:
 
 1. Package the BB8 project in this repository using `dotnet`.
 
-        dotnet publish -c Release -p:PublishSingleFile=true -p:PublishTrimmed=true -r linux-arm
+        dotnet publish -c Release -p:PublishSingleFile=false -p:PublishTrimmed=true -r linux-arm
 
-    This is also saved in `publish.ps1`
+    This is also saved in `publish.ps1`. With .NET 5 RC1, I found I needed turn off Single File publishing. It worked fine with .NET 5 Preview 7, however.
 
 2. Copy the files from `\src\BB8\bin\Release\net5.0\linux-arm\publish` via to the Pi.
 

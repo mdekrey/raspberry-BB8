@@ -17,10 +17,11 @@ namespace BB8.RaspberryPi
         public double BoostFactor { get; init; } = 1.0;
 
         public byte ToFlag(MotorState state) =>
-            state.Direction switch
+            state switch
             {
-                MotorDirection.Forward => (byte)(1 << ForwardBit),
-                MotorDirection.Backward => (byte)(1 << BackwardBit),
+                { Direction: MotorDirection.Stopped } => 0,
+                { Direction: MotorDirection.Forward, Speed: double speed } when speed >= Buffer => (byte)(1 << ForwardBit),
+                { Direction: MotorDirection.Backward, Speed: double speed } when speed >= Buffer => (byte)(1 << BackwardBit),
                 _ => 0
             };
 
@@ -31,5 +32,10 @@ namespace BB8.RaspberryPi
                 _ when state.Speed < Buffer => 0,
                 _ => Math.Clamp(((1 - DeadZone) * state.Speed + DeadZone) * BoostFactor, 0.0, 1.0),
             };
+    }
+
+    public record DriveMotorConfiguration : MotorConfiguration
+    {
+        public double Orientation { get; set; }
     }
 }

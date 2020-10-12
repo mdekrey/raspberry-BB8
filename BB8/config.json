@@ -4,17 +4,20 @@
       {
         "PwmGpioPin": 23,
         "ForwardBit": 7,
-        "BackwardBit": 5
+        "BackwardBit": 5,
+        "Buffer": 0.5
       },
       {
         "PwmGpioPin": 24,
         "ForwardBit": 2,
-        "BackwardBit": 3
+        "BackwardBit": 3,
+        "Buffer": 0.5
       },
       {
         "PwmGpioPin": 4,
         "ForwardBit": 1,
-        "BackwardBit": 4
+        "BackwardBit": 4,
+        "Buffer": 0.5
       }
     ],
     "TestMotor": 2,

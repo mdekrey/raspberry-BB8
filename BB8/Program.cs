@@ -29,16 +29,23 @@ var originalColor = Console.ForegroundColor;
 IBluetoothController bluetoothController = new BluetoothController();
 Pi.Init<BootstrapWiringPi>();
 
-foreach (var pin in Pi.Gpio)
-{
-    Console.WriteLine($"{pin.BcmPin}: {((GpioPin)pin).Capabilities}");
-}
+//foreach (var pin in Pi.Gpio)
+//    Console.WriteLine($"{pin.BcmPin}: {((GpioPin)pin).Capabilities}");
 
-var motors = motorConfig.Motors.Select(ConfiguredMotor.ToMotor).ToArray();
-var motorDirection = bbUnitConfig.MotorOrientation.Select(degrees => degrees * Math.PI / 180).Select(radians => new Vector2(Math.Cos(radians), Math.Sin(radians)));
+var motors = 
+    Enumerable.Zip(
+        motorConfig.Motors
+            .Select(ConfiguredMotor.ToMotor),
+        from degrees in bbUnitConfig.MotorOrientation
+        let radians = degrees * Math.PI / 180
+        select radians is double r ? new Vector2(Math.Cos(r), Math.Sin(r)) : null,
+        (configuredMotor, direction) => (configuredMotor, direction)
+    )
+    .ToArray();
+Console.WriteLine(string.Join<Vector2?>(", ", motors.Select(m => m.direction)));
 
 await using (var bluetoothGamepads = new BluetoothGamepads(bluetoothController, bluetoothGamepadMacAddresses))
-await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, motors.ToDictionary(c => c.Motor, c => c.Configuration)))
+await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, motors.Select(m => m.configuredMotor)))
 {
     try
     {
@@ -47,7 +54,6 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, mo
 
         var controllerUpdates = bluetoothGamepads.GamepadStateChanges
             .Select((gamepad) => (gamepad.state, gamepad.eventArgs, mapping: gamepadMapping.Devices.FirstOrDefault(d => StringComparer.OrdinalIgnoreCase.Equals(d.Device.Name, gamepad.state.GamepadName))?.Mapping!))
-            //.Do(gamepad => Console.WriteLine(gamepad.state))
             .Where(gamepad => gamepad.mapping != null)
             .Select((gamepad) => (state: gamepad.state.Map(gamepad.mapping), eventArgs: gamepad.eventArgs.Map(gamepad.mapping).ToArray()))
             .Do(gamepad => Console.WriteLine(gamepad.state))
@@ -59,12 +65,23 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, mo
                 }
             })
             .TakeUntil(gamepad => gamepad.eventArgs.Any(change => change is MappedButtonEventArgs(_, "exit", true)))
-            .Select(gamepad => new Vector2(gamepad.state.Axis("moveX"), gamepad.state.Axis("moveY")).MaxUnit())
+            .Select(gamepad => new Vector2(gamepad.state.Axis("moveX"), gamepad.state.Axis("moveY")).MaxUnit());
+        await controllerUpdates
             .Do(direction =>
             {
-                foreach (var entry in motorDirection.Zip(motors, (direction, motor) => (direction, motor: motor.Motor)))
+                var motorState = from entry in motors
+                                 let speed = direction.Dot(entry.direction)
+                                 select (motor: entry.configuredMotor.Motor, entry.configuredMotor.Configuration, speed, state: speed switch
+                                 {
+                                     var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },
+                                     var speed when speed < 0 => new MotorState { Direction = MotorDirection.Backward, Speed = Math.Clamp(-speed, double.Epsilon, 1) },
+                                     _ => new MotorState { Direction = MotorDirection.Stopped },
+                                 });
+                Console.WriteLine(string.Join(", ", motorState.Select(t => $"({t.speed:0.0} => {t.state} => {t.Configuration.ToSpeed(t.state):0.00})")));
+
+                foreach (var entry in motorState)
                 {
-                    entry.motor.Update(direction.Dot(entry.direction) switch
+                    entry.motor.Update(entry.speed switch
                     {
                         var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },
                         var speed when speed < 0 => new MotorState { Direction = MotorDirection.Backward, Speed = Math.Clamp(-speed, double.Epsilon, 1) },
@@ -72,7 +89,6 @@ await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, mo
                     });
                 }
             });
-        await controllerUpdates;
 
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine("Ending");
@@ -95,4 +111,6 @@ record Vector2(double X, double Y)
         };
 
     public Vector2 Multiply(double factor) => new(X * factor, Y * factor);
+
+    public override string ToString() => $"({X:0.00}, {Y:0.00})";
 }

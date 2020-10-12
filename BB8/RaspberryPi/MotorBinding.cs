@@ -23,7 +23,7 @@ namespace BB8.RaspberryPi
         private readonly SerialDigitizer serial;
         private readonly IObservable<(Action cancel, Task task)> serialObservable;
 
-        public MotorBinding(IGpioController gpioPins, MotorSerialControlPins serialConfiguration, IReadOnlyDictionary<Motor, MotorConfiguration> motors)
+        public MotorBinding(IGpioController gpioPins, MotorSerialControlPins serialConfiguration, IEnumerable<ConfiguredMotor> motors)
         {
             serialDataPin = gpioPins[serialConfiguration.GpioData];
             serialLatchPin = gpioPins[serialConfiguration.GpioLatch];
@@ -34,7 +34,7 @@ namespace BB8.RaspberryPi
 
             serial = new SerialDigitizer(serialDataPin, serialClockPin, serialLatchPin, 8);
 
-            var serialObservable = Observable.CombineLatest(motors.Select(kvp => kvp.Key.Select(state => (MotorState: state, Configuration: kvp.Value))))
+            var serialObservable = Observable.CombineLatest(motors.Select(kvp => kvp.Motor.Select(state => (MotorState: state, Configuration: kvp.Configuration))))
                 .TakeUntil(completed)
                 .Buffer(TimeSpan.FromMilliseconds(15), 3)
                 .Where(v => v.Any())
@@ -61,10 +61,10 @@ namespace BB8.RaspberryPi
 
             foreach (var kvp in motors)
             {
-                var pwmOutput = gpioPins[kvp.Value.PwmGpioPin].ToPwmPin();
-                subscriptions.Add(kvp.Key
+                var pwmOutput = gpioPins[kvp.Configuration.PwmGpioPin].ToPwmPin();
+                subscriptions.Add(kvp.Motor
                     .Select(state => (state, pwm: pwmOutput))
-                    .Subscribe(state => state.pwm.PwmValue = (uint)(pwmOutput.PwmRange * kvp.Value.ToSpeed(state.state))));
+                    .Subscribe(state => state.pwm.PwmValue = (uint)(pwmOutput.PwmRange * kvp.Configuration.ToSpeed(state.state))));
             }
         }
 

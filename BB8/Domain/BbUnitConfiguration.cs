@@ -8,6 +8,6 @@ namespace BB8.Domain
 {
     public class BbUnitConfiguration
     {
-        public int[] MotorOrientation { get; init; } = Array.Empty<int>();
+        public int?[] MotorOrientation { get; init; } = Array.Empty<int?>();
     }
 }

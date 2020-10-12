@@ -25,6 +25,15 @@ namespace BB8.Domain
                 MotorDirection.Stopped => Speed == 0,
                 _ => Speed > 0 && Speed <= 1
             };
+
+        public override string ToString() =>
+            Direction switch
+            {
+                MotorDirection.Stopped => "00.00",
+                MotorDirection.Forward => $"+{Speed:0.00}",
+                MotorDirection.Backward => $"-{Speed:0.00}",
+                _ => throw new NotSupportedException()
+            };
     }
 
     public sealed class Motor : IObservable<MotorState>, IDisposable

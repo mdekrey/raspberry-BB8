@@ -1,9 +1,11 @@
 ﻿using BB8;
 using BB8.Bluetooth;
 using BB8.Domain;
-using BB8.Gamepad;
 using BB8.RaspberryPi;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,104 +15,58 @@ using System.Threading.Tasks;
 using Unosquare.RaspberryIO;
 using Unosquare.WiringPi;
 
-var config = new ConfigurationBuilder()
-    .AddJsonFile("config.json")
-    .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true)
-    .Build();
-var gamepadMapping = config.GetSection("gamepad").Get<GamepadMappingConfiguration>();
-var bluetoothGamepadMacAddresses = (from deviceMapping in gamepadMapping.Devices
-                                    where deviceMapping.Device.Bluetooth is string
-                                    select deviceMapping.Device.Bluetooth).ToArray();
-var motorConfig = config.GetSection("motion").Get<MotionConfiguration>();
-var bbUnitConfig = config.GetSection("bbUnit").Get<BbUnitConfiguration>();
-
-var originalColor = Console.ForegroundColor;
-
-IBluetoothController bluetoothController = new BluetoothController();
 Pi.Init<BootstrapWiringPi>();
 
-//foreach (var pin in Pi.Gpio)
-//    Console.WriteLine($"{pin.BcmPin}: {((GpioPin)pin).Capabilities}");
-
-var motors = 
-    Enumerable.Zip(
-        motorConfig.Motors
-            .Select(ConfiguredMotor.ToMotor),
-        from degrees in bbUnitConfig.MotorOrientation
-        let radians = degrees * Math.PI / 180
-        select radians is double r ? new Vector2(Math.Cos(r), Math.Sin(r)) : null,
-        (configuredMotor, direction) => (configuredMotor, direction)
-    )
-    .ToArray();
-Console.WriteLine(string.Join<Vector2?>(", ", motors.Select(m => m.direction)));
-
-await using (var bluetoothGamepads = new BluetoothGamepads(bluetoothController, bluetoothGamepadMacAddresses))
-await using (var motorBinding = new MotorBinding(Pi.Gpio, motorConfig.Serial, motors.Select(m => m.configuredMotor)))
-{
-    try
-    {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(DateTime.Now.ToString());
-
-        var controllerUpdates = bluetoothGamepads.GamepadStateChanges
-            .Select((gamepad) => (gamepad.state, gamepad.eventArgs, mapping: gamepadMapping.Devices.FirstOrDefault(d => StringComparer.OrdinalIgnoreCase.Equals(d.Device.Name, gamepad.state.GamepadName))?.Mapping!))
-            .Where(gamepad => gamepad.mapping != null)
-            .Select((gamepad) => (state: gamepad.state.Map(gamepad.mapping), eventArgs: gamepad.eventArgs.Map(gamepad.mapping).ToArray()))
-            .Do(gamepad => Console.WriteLine(gamepad.state))
-            .Do(gamepad =>
+using var host = Host.CreateDefaultBuilder(args)
+            .ConfigureAppConfiguration(builder => builder
+                .AddJsonFile(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json"))
+                .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true)
+            )
+            .ConfigureServices(services =>
             {
-                if (gamepad.eventArgs.Any(change => change is MappedButtonEventArgs(_, "disconnect", true)))
-                {
-                    Task.Run(() => bluetoothController.DisconnectAsync(bluetoothGamepadMacAddresses.First()));
-                }
+                services.AddSingleton(new CancellationTokenSource());
+                services.AddSingleton(sp => sp.GetRequiredService<IConfiguration>().GetSection("gamepad").Get<GamepadMappingConfiguration>());
+                services.AddSingleton(sp => sp.GetRequiredService<IConfiguration>().GetSection("motion").Get<MotionConfiguration>());
+                services.AddSingleton(sp => sp.GetRequiredService<IConfiguration>().GetSection("bbUnit").Get<BbUnitConfiguration>());
+                services.AddSingleton<IBluetoothController, BluetoothController>();
+                services.AddHostedService<MotorService>();
+                services.AddHostedService<ControllerMappingService>();
+                services.AddSingleton(sp => new MotorBinding(Pi.Gpio, sp.GetRequiredService<MotionConfiguration>().Serial, sp.GetRequiredService<List<ConfiguredMotor>>()));
+                services.AddSingleton(sp => new BluetoothGamepads(sp.GetRequiredService<IBluetoothController>(), (from deviceMapping in sp.GetRequiredService<GamepadMappingConfiguration>().Devices
+                                                                                                                  where deviceMapping.Device.Bluetooth is string
+                                                                                                                  select deviceMapping.Device.Bluetooth).ToArray()));
+                services.AddSingleton(sp => sp.GetRequiredService<MotionConfiguration>().Motors.Select(ConfiguredMotor.ToMotor).ToList());
+                services.AddSingleton(sp => sp.GetRequiredService<BluetoothGamepads>().GamepadStateChanges.Select(sp.GetRequiredService<GamepadMappingConfiguration>().Devices).Replay(1).RefCount());
+                services.AddSingleton(sp => sp.GetRequiredService<IObservable<EventedMappedGamepad>>().SelectVector("moveX", "moveY")
+                                                .Select(direction => from entry in Enumerable.Zip(
+                                                                        sp.GetRequiredService<List<ConfiguredMotor>>(),
+                                                                        from degrees in sp.GetRequiredService<BbUnitConfiguration>().MotorOrientation
+                                                                        let radians = degrees * Math.PI / 180
+                                                                        select radians is double r ? new Vector2(Math.Cos(r), Math.Sin(r)) : null,
+                                                                        (configuredMotor, direction) => (configuredMotor, direction)
+                                                                     )
+                                                                     let speed = direction.Dot(entry.direction)
+                                                                     select new MotorDriveState(entry.configuredMotor, state: speed switch
+                                                                     {
+                                                                         var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },
+                                                                         var speed when speed < 0 => new MotorState { Direction = MotorDirection.Backward, Speed = Math.Clamp(-speed, double.Epsilon, 1) },
+                                                                         _ => new MotorState { Direction = MotorDirection.Stopped },
+                                                                     }))
+                                                .Select(motorState => motorState.ToArray())
+                                                .Replay(1).RefCount());
+
             })
-            .TakeUntil(gamepad => gamepad.eventArgs.Any(change => change is MappedButtonEventArgs(_, "exit", true)))
-            .Select(gamepad => new Vector2(gamepad.state.Axis("moveX"), gamepad.state.Axis("moveY")).MaxUnit());
-        await controllerUpdates
-            .Do(direction =>
-            {
-                var motorState = from entry in motors
-                                 let speed = direction.Dot(entry.direction)
-                                 select (motor: entry.configuredMotor.Motor, entry.configuredMotor.Configuration, speed, state: speed switch
-                                 {
-                                     var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },
-                                     var speed when speed < 0 => new MotorState { Direction = MotorDirection.Backward, Speed = Math.Clamp(-speed, double.Epsilon, 1) },
-                                     _ => new MotorState { Direction = MotorDirection.Stopped },
-                                 });
-                Console.WriteLine(string.Join(", ", motorState.Select(t => $"({t.speed:0.0} => {t.state} => {t.Configuration.ToSpeed(t.state):0.00})")));
+            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>())
+            .ConfigureWebHost(host => host.UseKestrel(options => options.Listen(
+                System.Net.IPAddress.Any,
+                // TODO - I don't like having a hard-coded port here
+                5001,
+                // TODO - I don't like having a hard-coded path here
+                listenOptions => listenOptions.UseHttps("/raspberrypi.pfx")
+            )))
+            .Build();
 
-                foreach (var entry in motorState)
-                {
-                    entry.motor.Update(entry.speed switch
-                    {
-                        var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },
-                        var speed when speed < 0 => new MotorState { Direction = MotorDirection.Backward, Speed = Math.Clamp(-speed, double.Epsilon, 1) },
-                        _ => new MotorState { Direction = MotorDirection.Stopped },
-                    });
-                }
-            });
+Console.WriteLine("Starting diagnostics server...");
+await host.RunAsync(host.Services.GetRequiredService<CancellationTokenSource>().Token);
 
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("Ending");
-    }
-    finally
-    {
-        Console.ForegroundColor = originalColor;
-    }
-}
-
-record Vector2(double X, double Y)
-{
-    public double Dot(Vector2 other) => X * other.X + Y * other.Y;
-
-    public Vector2 MaxUnit() =>
-        (X * X + Y * Y) switch
-        {
-            < 1 => this,
-            var norm => this.Multiply(1 / Math.Sqrt(norm))
-        };
-
-    public Vector2 Multiply(double factor) => new(X * factor, Y * factor);
-
-    public override string ToString() => $"({X:0.00}, {Y:0.00})";
-}
+Console.WriteLine("Ending");

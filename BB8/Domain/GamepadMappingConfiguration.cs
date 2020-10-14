@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -70,6 +71,8 @@ namespace BB8.Domain
             $"Button: {Button} {Pressed}";
     }
 
+    public record EventedMappedGamepad(GamepadMappedState state, MappedGamepadEventArgs[] eventArgs);
+
     public static class GamepadMappingExtensions
     {
         public static GamepadMappedState Map(this GamepadState state, GamepadMapping mappings) =>
@@ -118,5 +121,12 @@ namespace BB8.Domain
                 (< 0, { Negative: var negative }) => value * negative,
                 _ => value
             }, -1, 1);
+
+        public static IObservable<EventedMappedGamepad> Select(
+            this IObservable<EventedGamepad> gamepadStateChanges, GamepadMappingConfiguration.DeviceMapping[] deviceMappings
+        ) => gamepadStateChanges
+            .Select((gamepad) => (gamepad.state, gamepad.eventArgs, mapping: deviceMappings.FirstOrDefault(d => StringComparer.OrdinalIgnoreCase.Equals(d.Device.Name, gamepad.state.GamepadName))?.Mapping!))
+            .Where(gamepad => gamepad.mapping != null)
+            .Select((gamepad) => new EventedMappedGamepad(state: gamepad.state.Map(gamepad.mapping), eventArgs: gamepad.eventArgs.Map(gamepad.mapping).ToArray()));
     }
 }

@@ -13,4 +13,6 @@
     {
         public static readonly GamepadEventArgs Instance = new DisconnectedEventArgs();
     }
+
+    public record EventedGamepad(GamepadState state, GamepadEventArgs[] eventArgs);
 }

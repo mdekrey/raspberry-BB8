@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option csharp_namespace = "BB8.Services";
+
+package robo_diag;
+
+service RoboDiagnostics {
+  rpc GetController (EmptyRequest) returns (stream ControllerReply);
+  rpc GetMotorState (EmptyRequest) returns (stream MotorStateReply);
+  rpc GetGpioConfiguration (EmptyRequest) returns (GpioConfigurationReply);
+  rpc GetGpioState (EmptyRequest) returns (stream GpioStateReply);
+  rpc GetUnitConfiguration (EmptyRequest) returns (UnitConfigurationReply);
+}
+
+message EmptyRequest {
+}
+
+message ControllerReply {
+  string name = 1;
+  map<string, bool> buttons = 2;
+  map<string, double> axes = 3;
+}
+
+message MotorStateReply {
+	repeated MotorState motors = 1;
+}
+message MotorState {
+	enum MotorDirection {
+		STOPPED = 0;
+        FORWARD = 1;
+        BACKWARD = 2;
+	}
+	MotorDirection direction = 1;
+	double speed = 2;
+}
+
+message GpioConfigurationReply {
+	repeated GpioConfiguration pins = 1;
+}
+message GpioConfiguration {
+	string bcmPin = 1;
+	string capabilities = 2;
+}
+
+message GpioStateReply {
+	int32 serial = 1;
+	repeated double motorPower = 2;
+}
+
+message UnitConfigurationReply {
+	repeated int32 motorOrientation = 1;
+}

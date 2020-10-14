@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BB8.RaspberryPi
 {
-    record ConfiguredMotor
+    public record ConfiguredMotor
     {
         public Motor Motor { get; }
         public MotorConfiguration Configuration { get; }

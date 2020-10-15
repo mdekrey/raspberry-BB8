@@ -72,8 +72,9 @@ namespace BB8.RaspberryPi
                 subscriptions.Add(entry.Motor
                     .Select(state => (state, pwm: pwmOutput))
                     .Subscribe(state => {
-                        state.pwm.PwmValue = (uint)(pwmOutput.PwmRange * entry.Configuration.ToSpeed(state.state));
-                        motorPower.OnNext((entry.index, entry.Configuration.ToSpeed(state.state)));
+                        var speed = entry.Configuration.ToSpeed(state.state);
+                        state.pwm.PwmValue = (uint)(pwmOutput.PwmRange * speed);
+                        motorPower.OnNext((entry.index, speed));
                     }));
             }
         }

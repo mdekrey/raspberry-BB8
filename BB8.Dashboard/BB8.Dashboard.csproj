@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\BB8\Protos\robo_diag.proto">
+    <Protobuf Include="..\grpc-protos\robo_diag.proto">
       <Link>Protos\robo_diag.proto</Link>
     </Protobuf>
   </ItemGroup>

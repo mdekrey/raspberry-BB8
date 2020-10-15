@@ -8,10 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Protos\robo_diag.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.27.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0-rc.1.20451.14" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0-rc.1.20451.14" />
@@ -21,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\robo_diag.proto" />
+    <Protobuf Include="..\grpc-protos\robo_diag.proto">
+      <Link>Protos\robo_diag.proto</Link>
+    </Protobuf>
   </ItemGroup>
 
 </Project>

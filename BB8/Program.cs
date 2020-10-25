@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Unosquare.RaspberryIO;
@@ -19,28 +21,28 @@ Pi.Init<BootstrapWiringPi>();
 
 using var host = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration(builder => builder
-                .AddJsonFile(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json"))
-                .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true)
+                .AddJsonFile(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json"), optional: false, reloadOnChange: true)
+                .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true, reloadOnChange: true)
             )
-            .ConfigureServices(services =>
+            .ConfigureServices((ctx, services) =>
             {
                 services.AddSingleton(new CancellationTokenSource());
-                services.AddSingleton(sp => sp.GetRequiredService<IConfiguration>().GetSection("gamepad").Get<GamepadMappingConfiguration>());
-                services.AddSingleton(sp => sp.GetRequiredService<IConfiguration>().GetSection("motion").Get<MotionConfiguration>());
-                services.AddSingleton(sp => sp.GetRequiredService<IConfiguration>().GetSection("bbUnit").Get<BbUnitConfiguration>());
+                services.Configure<GamepadMappingConfiguration>(ctx.Configuration.GetSection("gamepad"));
+                services.Configure<MotionConfiguration>(ctx.Configuration.GetSection("motion"));
+                services.Configure<BbUnitConfiguration>(ctx.Configuration.GetSection("bbUnit"));
                 services.AddSingleton<IBluetoothController, BluetoothController>();
                 services.AddHostedService<MotorService>();
                 services.AddHostedService<ControllerMappingService>();
-                services.AddSingleton(sp => new MotorBinding(Pi.Gpio, sp.GetRequiredService<MotionConfiguration>().Serial, sp.GetRequiredService<List<ConfiguredMotor>>()));
-                services.AddSingleton(sp => new BluetoothGamepads(sp.GetRequiredService<IBluetoothController>(), (from deviceMapping in sp.GetRequiredService<GamepadMappingConfiguration>().Devices
+                services.AddSingleton(sp => new MotorBinding(Pi.Gpio, sp.GetRequiredService<IOptions<MotionConfiguration>>().Value.Serial, sp.GetRequiredService<List<ConfiguredMotor>>()));
+                services.AddSingleton(sp => new BluetoothGamepads(sp.GetRequiredService<IBluetoothController>(), (from deviceMapping in sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices
                                                                                                                   where deviceMapping.Device.Bluetooth is string
                                                                                                                   select deviceMapping.Device.Bluetooth).ToArray()));
-                services.AddSingleton(sp => sp.GetRequiredService<MotionConfiguration>().Motors.Select(ConfiguredMotor.ToMotor).ToList());
-                services.AddSingleton(sp => sp.GetRequiredService<BluetoothGamepads>().GamepadStateChanges.Select(sp.GetRequiredService<GamepadMappingConfiguration>().Devices).Replay(1).RefCount());
+                services.AddSingleton(sp => sp.GetRequiredService<IOptions<MotionConfiguration>>().Value.Motors.Select(ConfiguredMotor.ToMotor).ToList());
+                services.AddSingleton(sp => sp.GetRequiredService<BluetoothGamepads>().GamepadStateChanges.Select(sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices).Replay(1).RefCount());
                 services.AddSingleton(sp => sp.GetRequiredService<IObservable<EventedMappedGamepad>>().SelectVector("moveX", "moveY")
                                                 .Select(direction => from entry in Enumerable.Zip(
                                                                         sp.GetRequiredService<List<ConfiguredMotor>>(),
-                                                                        from degrees in sp.GetRequiredService<BbUnitConfiguration>().MotorOrientation
+                                                                        from degrees in sp.GetRequiredService<IOptions<BbUnitConfiguration>>().Value.MotorOrientation
                                                                         let radians = degrees * Math.PI / 180
                                                                         select radians is double r ? new Vector2(Math.Cos(r), Math.Sin(r)) : null,
                                                                         (configuredMotor, direction) => (configuredMotor, direction)

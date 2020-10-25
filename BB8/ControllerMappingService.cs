@@ -2,6 +2,7 @@
 using BB8.Bluetooth;
 using BB8.Domain;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -20,11 +21,11 @@ namespace BB8
         private readonly CancellationTokenSource cancellationTokenSource;
         private CompositeDisposable disposable = new();
 
-        public ControllerMappingService(IObservable<EventedMappedGamepad> controllerUpdates, IObservable<MotorDriveState[]> moveMotors, GamepadMappingConfiguration gamepadMappingConfiguration, IBluetoothController bluetoothController, CancellationTokenSource cancellationTokenSource)
+        public ControllerMappingService(IObservable<EventedMappedGamepad> controllerUpdates, IObservable<MotorDriveState[]> moveMotors, IOptions<GamepadMappingConfiguration> gamepadMappingConfiguration, IBluetoothController bluetoothController, CancellationTokenSource cancellationTokenSource)
         {
             this.controllerUpdates = controllerUpdates;
             this.moveMotors = moveMotors;
-            this.gamepadMappingConfiguration = gamepadMappingConfiguration;
+            this.gamepadMappingConfiguration = gamepadMappingConfiguration.Value;
             this.bluetoothController = bluetoothController;
             this.cancellationTokenSource = cancellationTokenSource;
         }

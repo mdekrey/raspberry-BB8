@@ -2,6 +2,7 @@ using BB8.Domain;
 using BB8.RaspberryPi;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,13 +21,13 @@ namespace BB8.Services
         private readonly MotorBinding motorBinding;
         private readonly BbUnitConfiguration unitConfiguration;
 
-        public RoboDiagnosticsService(ILogger<RoboDiagnosticsService> logger, IObservable<EventedMappedGamepad> gamepad, IObservable<MotorDriveState[]> motorStates, MotorBinding motorBinding, BbUnitConfiguration unitConfiguration)
+        public RoboDiagnosticsService(ILogger<RoboDiagnosticsService> logger, IObservable<EventedMappedGamepad> gamepad, IObservable<MotorDriveState[]> motorStates, MotorBinding motorBinding, IOptions<BbUnitConfiguration> unitConfiguration)
         {
             _logger = logger;
             this.gamepad = gamepad;
             this.motorStates = motorStates;
             this.motorBinding = motorBinding;
-            this.unitConfiguration = unitConfiguration;
+            this.unitConfiguration = unitConfiguration.Value;
         }
 
         public override Task GetController(EmptyRequest request, IServerStreamWriter<ControllerReply> responseStream, ServerCallContext context) =>

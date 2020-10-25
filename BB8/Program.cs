@@ -27,7 +27,8 @@ var hostBuilder = Host.CreateDefaultBuilder(args)
             )
             .ConfigureServices((ctx, services) =>
             {
-                services.AddSingleton(sp => {
+                services.AddSingleton(sp =>
+                {
                     if (!isRaspberryPi)
                         return new FakeGpioController();
                     Pi.Init<BootstrapWiringPi>();
@@ -41,11 +42,11 @@ var hostBuilder = Host.CreateDefaultBuilder(args)
                 services.AddSingleton<IBluetoothController, BluetoothController>();
                 services.AddHostedService<MotorService>();
                 services.AddSingleton<ControllerMappingService>();
-                services.AddHostedService<ControllerMappingService>();
+                services.AddTransient<IHostedService>(sp => sp.GetRequiredService<ControllerMappingService>());
                 services.AddTransient(sp => sp.GetRequiredService<ControllerMappingService>().MotorStates);
                 services.AddTransient(sp => sp.GetRequiredService<ControllerMappingService>().ControllerUpdates);
+                services.AddTransient(sp => sp.GetRequiredService<ControllerMappingService>().Motors);
                 services.AddSingleton<MotorBinding>();
-                services.AddTransient(sp => sp.GetRequiredService<MotorBinding>().Motors);
                 services.AddSingleton<IGamepadProvider, EmptyGamepads>();
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {

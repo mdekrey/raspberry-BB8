@@ -12,7 +12,6 @@ namespace BB8
     {
         public MotorService(MotorBinding motorBinding)
         {
-            Console.WriteLine("Constructed");
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -21,12 +22,19 @@ namespace BB8
         public IObservable<EventedMappedGamepad> ControllerUpdates { get; }
         public IObservable<MotorDriveState[]> MotorStates { get; }
         private CompositeDisposable disposable = new();
+        public IObservable<IReadOnlyList<Motor>> Motors { get; }
 
-        public ControllerMappingService(IEnumerable<IGamepadProvider> gamepadProviders, IObservable<IEnumerable<Motor>> motors, IOptionsMonitor<BbUnitConfiguration> bbUnitConfiguration, IOptionsMonitor<GamepadMappingConfiguration> gamepadMappingConfiguration, IBluetoothController bluetoothController, CancellationTokenSource cancellationTokenSource)
+        public ControllerMappingService(IEnumerable<IGamepadProvider> gamepadProviders, IOptionsMonitor<BbUnitConfiguration> bbUnitConfiguration, IOptionsMonitor<GamepadMappingConfiguration> gamepadMappingConfiguration, IBluetoothController bluetoothController, CancellationTokenSource cancellationTokenSource)
         {
             this.gamepadMappingConfiguration = gamepadMappingConfiguration;
             this.bluetoothController = bluetoothController;
             this.cancellationTokenSource = cancellationTokenSource;
+
+            this.Motors = bbUnitConfiguration.Observe()
+                .Select(cfg => cfg.MotorOrientation.Length)
+                .Scan(ImmutableList<Motor>.Empty, (motors, totalCount) => Enumerable.Range(0, Math.Max(0, totalCount - motors.Count)).Aggregate(motors, (motors, _) => motors.Add(new Motor())))
+                .Replay(1)
+                .RefCount();
 
             this.ControllerUpdates =
                 gamepadMappingConfiguration.Observe()
@@ -43,7 +51,7 @@ namespace BB8
                     .Switch();
 
             this.MotorStates = Observable.CombineLatest(
-                    motors,
+                    Motors,
                     ControllerUpdates.SelectVector("moveX", "moveY"),
                     bbUnitConfiguration.Observe(),
                     (motors, direction, bbUnitConfiguration) => (motors: motors.ToArray(), direction, bbUnitConfiguration)

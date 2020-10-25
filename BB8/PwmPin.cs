@@ -33,7 +33,8 @@ namespace BB8
         public SoftwarePwmPin(GpioPin gpioPin)
         {
             this.gpioPin = gpioPin;
-            gpioPin.StartSoftPwm(0, 1000);
+            if (!gpioPin.IsInSoftPwmMode)
+                gpioPin.StartSoftPwm(0, 1000);
         }
 
         public uint PwmRange => (uint)gpioPin.SoftPwmRange;

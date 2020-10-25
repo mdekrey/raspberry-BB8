@@ -18,12 +18,9 @@ namespace BB8.RaspberryPi
     public class MotorBinding : IAsyncDisposable
     {
         private bool disposedValue;
-        private readonly IGpioPin serialDataPin;
-        private readonly IGpioPin serialLatchPin;
-        private readonly IGpioPin serialClockPin;
         private readonly IDisposable subscriptions;
         private readonly Subject<Unit> completed = new();
-        private readonly SerialDigitizer serial;
+        private SerialDigitizer serial;
         private readonly IObservable<(Action cancel, Task task)> serialObservable;
         private readonly Subject<(int index, double power)> motorPower = new();
         private readonly Subject<byte> sentSerialData = new();
@@ -31,24 +28,32 @@ namespace BB8.RaspberryPi
         public IObservable<byte> SerialData => sentSerialData.AsObservable();
         public IObservable<IReadOnlyList<double>> MotorPower { get; }
 
-        public IObservable<IEnumerable<Motor>> Motors { get; }
-
-        public MotorBinding(IGpioController gpioPins, IOptions<MotionConfiguration> motionConfiguration)
+        public MotorBinding(IGpioController gpioPins, IOptionsMonitor<MotionConfiguration> motionConfiguration, IObservable<IReadOnlyList<Motor>> motors)
         {
             var subscriptions = new CompositeDisposable();
-            serialDataPin = gpioPins[motionConfiguration.Value.Serial.GpioData];
-            serialLatchPin = gpioPins[motionConfiguration.Value.Serial.GpioLatch];
-            serialClockPin = gpioPins[motionConfiguration.Value.Serial.GpioClock];
-            serialDataPin.PinMode = GpioPinDriveMode.Output;
-            serialLatchPin.PinMode = GpioPinDriveMode.Output;
-            serialClockPin.PinMode = GpioPinDriveMode.Output;
 
-            var motors = motionConfiguration.Value.Motors.Select(ConfiguredMotor.ToMotor).ToList();
-            Motors = Observable.Return(motors.Select(m => m.Motor).ToImmutableList());
+            serial = BuildSerialDigitizer(gpioPins, motionConfiguration.CurrentValue.Serial);
+            subscriptions.Add(
+                motionConfiguration.Observe()
+                    .Select(c => c.Serial)
+                    .Subscribe(cfg =>
+                    {
+                        serial = BuildSerialDigitizer(gpioPins, cfg);
+                    })
+            );
 
-            serial = new SerialDigitizer(serialDataPin, serialClockPin, serialLatchPin, 8);
+            var motorConfiguration = Observable.CombineLatest(motionConfiguration.Observe().Select(config => config.Motors),
+                motors,
+                (configurations, motors) => Enumerable.Zip(
+                    configurations.Take(motors.Count), 
+                    motors.Take(configurations.Count), 
+                    (configuration, motor) => (configuration, motor)
+                )
+                    .Select((e, index) => (e.configuration, e.motor, index))
+            );
 
-            var serialObservable = Observable.CombineLatest(motors.Select(kvp => kvp.Motor.Select(state => (MotorState: state, Configuration: kvp.Configuration))))
+            var serialObservable = motorConfiguration.Select(e => Observable.CombineLatest(e.Select(kvp => kvp.motor.Select(state => (MotorState: state, Configuration: kvp.configuration)))))
+                .Switch()
                 .TakeUntil(completed)
                 .Buffer(TimeSpan.FromMilliseconds(15), 3)
                 .Where(v => v.Any())
@@ -63,32 +68,35 @@ namespace BB8.RaspberryPi
             this.serialObservable = serialObservable;
 
             this.subscriptions = subscriptions;
-            subscriptions.Add(serialObservable.Subscribe());
+            subscriptions.Add(serialObservable.Subscribe(_ => { }, ex => Console.WriteLine(ex)));
 
             MotorPower = motorPower
-                .Scan(motors.Select(_ => 0.0).ToImmutableList(), (prev, next) => prev.SetItem(next.index, next.power))
-                .StartWith(motors.Select(_ => 0.0).ToImmutableList())
+                .Scan(ImmutableDictionary<int, double>.Empty, (prev, next) => prev.SetItem(next.index, next.power))
+                .StartWith(ImmutableDictionary<int, double>.Empty)
+                .Select(dict => Enumerable.Range(0, dict.Keys.DefaultIfEmpty(0).Max()).Select(key => dict[key]).ToArray())
                 .Replay(1)
                 .RefCount();
             subscriptions.Add(MotorPower.Subscribe());
 
-            foreach (var entry in motors.Select((m, index) => (m.Motor, m.Configuration, index)))
-            {
-                var pwmOutput = gpioPins[entry.Configuration.PwmGpioPin].ToPwmPin();
-                subscriptions.Add(entry.Motor
-                    .Select(state => (state, pwm: pwmOutput))
-                    .Subscribe(state => {
-                        var speed = entry.Configuration.ToSpeed(state.state);
-                        state.pwm.PwmValue = (uint)(pwmOutput.PwmRange * speed);
-                        motorPower.OnNext((entry.index, speed));
-                    }));
-            }
+            subscriptions.Add(
+                motorConfiguration.SelectMany(configuredMotors => configuredMotors)
+                    .SelectMany(e => e.motor.Select(state => (state, speed: e.configuration.ToSpeed(state), pwm: gpioPins[e.configuration.PwmGpioPin].ToPwmPin(), index: e.index)))
+                    .Subscribe(e =>
+                    {
+                        e.pwm.PwmValue = (uint)(e.pwm.PwmRange * e.speed);
+                        motorPower.OnNext((e.index, e.speed));
+                    }, ex => Console.WriteLine(ex))
+            );
+        }
+
+        private static SerialDigitizer BuildSerialDigitizer(IGpioController gpioPins, MotorSerialControlPins cfg)
+        {
+            return new SerialDigitizer(gpioPins[cfg.GpioData], gpioPins[cfg.GpioClock], gpioPins[cfg.GpioLatch], 8);
         }
 
         private static byte ToFlag((MotorState MotorState, MotorConfiguration Configuration) state) => 
             state.Configuration.ToFlag(state.MotorState);
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         ~MotorBinding()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

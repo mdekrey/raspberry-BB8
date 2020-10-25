@@ -16,6 +16,9 @@ namespace BB8
 
         public SerialDigitizer(IGpioPin data, IGpioPin clock, IGpioPin latch, int bitCount)
         {
+            data.PinMode = GpioPinDriveMode.Output;
+            latch.PinMode = GpioPinDriveMode.Output;
+            clock.PinMode = GpioPinDriveMode.Output;
             this.dataPin = data;
             this.clockPin = clock;
             this.latchPin = latch;

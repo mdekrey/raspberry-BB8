@@ -12,17 +12,17 @@ using System.Threading.Tasks;
 namespace BB8.Gamepad
 {
 
-    public class Gamepad : IGamepad
+    public class LinuxGamepad : IGamepad
     {
         public IObservable<(GamepadState state, GamepadEventArgs eventArgs)> GamepadStateChanged { get; }
-        public string? Name { get; }
+        public string Name { get; }
 
         public static string[] GetDeviceNames()
         {
             return Directory.GetFiles("/dev/input", "js*");
         }
 
-        public Gamepad(string name, string deviceFile = "/dev/input/js0")
+        public LinuxGamepad(string name, string deviceFile)
         {
             if (!File.Exists(deviceFile))
                 throw new ArgumentException(nameof(deviceFile), $"The device {deviceFile} does not exist");
@@ -64,10 +64,10 @@ namespace BB8.Gamepad
                             ProcessValues(message, observer.OnNext);
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         observer.OnNext(DisconnectedEventArgs.Instance);
-                        observer.OnError(ex);
+                        observer.OnCompleted();
                     }
                 }, TaskCreationOptions.LongRunning);
 

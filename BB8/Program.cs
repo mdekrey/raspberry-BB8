@@ -15,17 +15,24 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Unosquare.RaspberryIO;
+using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
 
-Pi.Init<BootstrapWiringPi>();
+var isRaspberryPi = RuntimeInformation.RuntimeIdentifier.StartsWith("raspbian");
 
-using var host = Host.CreateDefaultBuilder(args)
+var hostBuilder = Host.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration(builder => builder
                 .AddJsonFile(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json"), optional: false, reloadOnChange: true)
                 .AddJsonFile(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json"), optional: true, reloadOnChange: true)
             )
             .ConfigureServices((ctx, services) =>
             {
+                services.AddSingleton(sp => {
+                    if (!isRaspberryPi)
+                        return new FakeGpioController();
+                    Pi.Init<BootstrapWiringPi>();
+                    return Pi.Gpio;
+                });
                 services.AddSingleton(new CancellationTokenSource());
                 services.Configure<GamepadMappingConfiguration>(ctx.Configuration.GetSection("gamepad"));
                 services.Configure<MotionConfiguration>(ctx.Configuration.GetSection("motion"));
@@ -33,12 +40,16 @@ using var host = Host.CreateDefaultBuilder(args)
                 services.AddSingleton<IBluetoothController, BluetoothController>();
                 services.AddHostedService<MotorService>();
                 services.AddHostedService<ControllerMappingService>();
-                services.AddSingleton(sp => new MotorBinding(Pi.Gpio, sp.GetRequiredService<IOptions<MotionConfiguration>>().Value.Serial, sp.GetRequiredService<List<ConfiguredMotor>>()));
-                services.AddSingleton(sp => new BluetoothGamepads(sp.GetRequiredService<IBluetoothController>(), (from deviceMapping in sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices
-                                                                                                                  where deviceMapping.Device.Bluetooth is string
-                                                                                                                  select deviceMapping.Device.Bluetooth).ToArray()));
+                services.AddSingleton(sp => new MotorBinding(sp.GetRequiredService<IGpioController>(), sp.GetRequiredService<IOptions<MotionConfiguration>>().Value.Serial, sp.GetRequiredService<List<ConfiguredMotor>>()));
+                services.AddSingleton<IGamepadProvider, EmptyGamepads>();
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    services.AddSingleton<IGamepadProvider>(sp => new LinuxBluetoothGamepads(sp.GetRequiredService<IBluetoothController>(), (from deviceMapping in sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices
+                                                                                                                                             where deviceMapping.Device.Bluetooth is string
+                                                                                                                                             select deviceMapping.Device.Bluetooth).ToArray()));
+                }
                 services.AddSingleton(sp => sp.GetRequiredService<IOptions<MotionConfiguration>>().Value.Motors.Select(ConfiguredMotor.ToMotor).ToList());
-                services.AddSingleton(sp => sp.GetRequiredService<BluetoothGamepads>().GamepadStateChanges.Select(sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices).Replay(1).RefCount());
+                services.AddSingleton(sp => Observable.Merge(sp.GetRequiredService<IEnumerable<IGamepadProvider>>().Select(gamepads => gamepads.GamepadStateChanges)).Select(sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices).Replay(1).RefCount());
                 services.AddSingleton(sp => sp.GetRequiredService<IObservable<EventedMappedGamepad>>().SelectVector("moveX", "moveY")
                                                 .Select(direction => from entry in Enumerable.Zip(
                                                                         sp.GetRequiredService<List<ConfiguredMotor>>(),
@@ -58,15 +69,24 @@ using var host = Host.CreateDefaultBuilder(args)
                                                 .Replay(1).RefCount());
 
             })
-            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>())
+            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
+
+if (isRaspberryPi)
+{
+    hostBuilder = hostBuilder
             .ConfigureWebHost(host => host.UseKestrel(options => options.Listen(
                 System.Net.IPAddress.Any,
                 // TODO - I don't like having a hard-coded port here
                 5001,
                 // TODO - I don't like having a hard-coded path here
-                listenOptions => listenOptions.UseHttps("/raspberrypi.pfx")
-            )))
-            .Build();
+                listenOptions =>
+                {
+                    if (System.IO.File.Exists("/raspberrypi.pfx")) listenOptions.UseHttps("/raspberrypi.pfx");
+                }
+            )));
+}
+
+using var host = hostBuilder.Build();
 
 Console.WriteLine("Starting diagnostics server...");
 await host.RunAsync(host.Services.GetRequiredService<CancellationTokenSource>().Token);

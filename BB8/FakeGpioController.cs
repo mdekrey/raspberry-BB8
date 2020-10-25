@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unosquare.RaspberryIO.Abstractions;
 
 namespace BB8
@@ -7,24 +8,20 @@ namespace BB8
 
     internal class FakeGpioController : IGpioController
     {
-        public IGpioPin this[int bcmPinNumber] => throw new System.NotImplementedException();
+        readonly IReadOnlyList<IGpioPin> pins = Enumerable.Range(0, 32).Select(v => new FakeGpioPin { BcmPinNumber = v }).ToArray();
 
-        public IGpioPin this[BcmPin bcmPin] => throw new System.NotImplementedException();
+        public IGpioPin this[int bcmPinNumber] => pins[bcmPinNumber];
 
-        public IGpioPin this[P1 pinNumber] => throw new System.NotImplementedException();
+        public IGpioPin this[BcmPin bcmPin] => this[(int)bcmPin];
 
-        public IGpioPin this[P5 pinNumber] => throw new System.NotImplementedException();
+        public IGpioPin this[P1 pinNumber] => this[(int)pinNumber];
 
-        public int Count => throw new System.NotImplementedException();
+        public IGpioPin this[P5 pinNumber] => this[(int)pinNumber];
 
-        public IEnumerator<IGpioPin> GetEnumerator()
-        {
-            throw new System.NotImplementedException();
-        }
+        public int Count => pins.Count;
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new System.NotImplementedException();
-        }
+        public IEnumerator<IGpioPin> GetEnumerator() => pins.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => pins.GetEnumerator();
     }
 }

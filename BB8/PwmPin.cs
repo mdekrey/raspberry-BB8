@@ -1,4 +1,5 @@
-﻿using Unosquare.RaspberryIO.Abstractions;
+﻿using Microsoft.AspNetCore.Routing.Matching;
+using Unosquare.RaspberryIO.Abstractions;
 using Unosquare.WiringPi;
 
 namespace BB8
@@ -7,14 +8,20 @@ namespace BB8
     {
         public static IPwmPin ToPwmPin(this IGpioPin pin)
         {
-            var gpioPin = (GpioPin)pin;
-            if ((gpioPin.Capabilities & PinCapability.PWM) != 0)
+            if (pin is GpioPin gpioPin)
             {
-                return new HardwarePwmPin(gpioPin);
+                if ((gpioPin.Capabilities & PinCapability.PWM) != 0)
+                {
+                    return new HardwarePwmPin(gpioPin);
+                }
+                else
+                {
+                    return new SoftwarePwmPin(gpioPin);
+                }
             }
             else
             {
-                return new SoftwarePwmPin(gpioPin);
+                return new FakePwmPin(pin);
             }
         }
     }
@@ -46,5 +53,19 @@ namespace BB8
         public uint PwmRange => gpioPin.PwmRange;
 
         public uint PwmValue { get => (uint)gpioPin.PwmRegister; set => gpioPin.PwmRegister = (int)value; }
+    }
+
+    internal class FakePwmPin : IPwmPin
+    {
+        private IGpioPin pin;
+
+        public FakePwmPin(IGpioPin pin)
+        {
+            this.pin = pin;
+        }
+
+        public uint PwmRange { get; set; }
+
+        public uint PwmValue { get; set; }
     }
 }

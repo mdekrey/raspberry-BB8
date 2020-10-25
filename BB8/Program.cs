@@ -40,40 +40,17 @@ var hostBuilder = Host.CreateDefaultBuilder(args)
                 services.Configure<BbUnitConfiguration>(ctx.Configuration.GetSection("bbUnit"));
                 services.AddSingleton<IBluetoothController, BluetoothController>();
                 services.AddHostedService<MotorService>();
+                services.AddSingleton<ControllerMappingService>();
                 services.AddHostedService<ControllerMappingService>();
+                services.AddTransient(sp => sp.GetRequiredService<ControllerMappingService>().MotorStates);
+                services.AddTransient(sp => sp.GetRequiredService<ControllerMappingService>().ControllerUpdates);
                 services.AddSingleton<MotorBinding>();
                 services.AddTransient(sp => sp.GetRequiredService<MotorBinding>().Motors);
                 services.AddSingleton<IGamepadProvider, EmptyGamepads>();
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    services.AddSingleton<IGamepadProvider>(sp => new LinuxBluetoothGamepads(sp.GetRequiredService<IBluetoothController>(), (from deviceMapping in sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices
-                                                                                                                                             where deviceMapping.Device.Bluetooth is string
-                                                                                                                                             select deviceMapping.Device.Bluetooth).ToArray()));
+                    services.AddSingleton<IGamepadProvider, LinuxBluetoothGamepads>();
                 }
-                services.AddSingleton(sp => Observable.Merge(sp.GetRequiredService<IEnumerable<IGamepadProvider>>().Select(gamepads => gamepads.GamepadStateChanges)).Select(sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices).Replay(1).RefCount());
-                services.AddSingleton(sp => Observable.CombineLatest(
-                    sp.GetRequiredService<IObservable<IEnumerable<Motor>>>(),
-                    sp.GetRequiredService<IObservable<EventedMappedGamepad>>().SelectVector("moveX", "moveY"),
-                    sp.GetRequiredService<IOptionsMonitor<BbUnitConfiguration>>().Observe(),
-                    (motors, direction, bbUnitConfiguration) => (motors: motors.ToArray(), direction, bbUnitConfiguration)
-                )
-                                                .Select(e => from entry in Enumerable.Zip(
-                                                                        e.motors,
-                                                                        from degrees in e.bbUnitConfiguration.MotorOrientation.Take(e.motors.Length)
-                                                                        let radians = degrees * Math.PI / 180
-                                                                        select radians is double r ? new Vector2(Math.Cos(r), Math.Sin(r)) : null,
-                                                                        (motor, direction) => (motor, direction)
-                                                                     )
-                                                                     let speed = e.direction.Dot(entry.direction)
-                                                                     select new MotorDriveState(entry.motor, state: speed switch
-                                                                     {
-                                                                         var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },
-                                                                         var speed when speed < 0 => new MotorState { Direction = MotorDirection.Backward, Speed = Math.Clamp(-speed, double.Epsilon, 1) },
-                                                                         _ => new MotorState { Direction = MotorDirection.Stopped },
-                                                                     }))
-                                                .Select(motorState => motorState.ToArray())
-                                                .Replay(1).RefCount());
-
             })
             .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
 

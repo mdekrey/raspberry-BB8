@@ -16,16 +16,16 @@ namespace BB8
     {
         private readonly IObservable<EventedMappedGamepad> controllerUpdates;
         private readonly IObservable<MotorDriveState[]> moveMotors;
-        private readonly GamepadMappingConfiguration gamepadMappingConfiguration;
+        private readonly IOptionsMonitor<GamepadMappingConfiguration> gamepadMappingConfiguration;
         private readonly IBluetoothController bluetoothController;
         private readonly CancellationTokenSource cancellationTokenSource;
         private CompositeDisposable disposable = new();
 
-        public ControllerMappingService(IObservable<EventedMappedGamepad> controllerUpdates, IObservable<MotorDriveState[]> moveMotors, IOptions<GamepadMappingConfiguration> gamepadMappingConfiguration, IBluetoothController bluetoothController, CancellationTokenSource cancellationTokenSource)
+        public ControllerMappingService(IObservable<EventedMappedGamepad> controllerUpdates, IObservable<MotorDriveState[]> moveMotors, IOptionsMonitor<GamepadMappingConfiguration> gamepadMappingConfiguration, IBluetoothController bluetoothController, CancellationTokenSource cancellationTokenSource)
         {
             this.controllerUpdates = controllerUpdates;
             this.moveMotors = moveMotors;
-            this.gamepadMappingConfiguration = gamepadMappingConfiguration.Value;
+            this.gamepadMappingConfiguration = gamepadMappingConfiguration;
             this.bluetoothController = bluetoothController;
             this.cancellationTokenSource = cancellationTokenSource;
         }
@@ -41,14 +41,14 @@ namespace BB8
             controllerUpdates.Where(gamepad => gamepad.eventArgs.Any(change => change is MappedButtonEventArgs(_, "disconnect", true)))
     .Subscribe(_ =>
     {
-        foreach (var entry in gamepadMappingConfiguration.Devices.Where(e => e.Device?.Bluetooth is string))
+        foreach (var entry in gamepadMappingConfiguration.CurrentValue.Devices.Where(e => e.Device?.Bluetooth is string))
         {
             Task.Run(() => bluetoothController.DisconnectAsync(entry.Device!.Bluetooth!));
         }
     })); disposable.Add(
              controllerUpdates.Where(gamepad => gamepad.eventArgs.Any(change => change is MappedButtonEventArgs(_, "exit", true))).Subscribe(_ => cancellationTokenSource.Cancel()));
             disposable.Add(
-            moveMotors.SelectMany(t => t).Subscribe(entry => entry.motor.Motor.Update(entry.state)));
+            moveMotors.SelectMany(t => t).Subscribe(entry => entry.motor.Update(entry.state)));
 
             return Task.CompletedTask;
         }

@@ -36,11 +36,13 @@ var hostBuilder = Host.CreateDefaultBuilder(args)
                 services.AddSingleton(new CancellationTokenSource());
                 services.Configure<GamepadMappingConfiguration>(ctx.Configuration.GetSection("gamepad"));
                 services.Configure<MotionConfiguration>(ctx.Configuration.GetSection("motion"));
+                services.Configure<MotorSerialControlPins>(ctx.Configuration.GetSection("motion:serial"));
                 services.Configure<BbUnitConfiguration>(ctx.Configuration.GetSection("bbUnit"));
                 services.AddSingleton<IBluetoothController, BluetoothController>();
                 services.AddHostedService<MotorService>();
                 services.AddHostedService<ControllerMappingService>();
-                services.AddSingleton(sp => new MotorBinding(sp.GetRequiredService<IGpioController>(), sp.GetRequiredService<IOptions<MotionConfiguration>>().Value.Serial, sp.GetRequiredService<List<ConfiguredMotor>>()));
+                services.AddSingleton<MotorBinding>();
+                services.AddTransient(sp => sp.GetRequiredService<MotorBinding>().Motors);
                 services.AddSingleton<IGamepadProvider, EmptyGamepads>();
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
@@ -48,18 +50,22 @@ var hostBuilder = Host.CreateDefaultBuilder(args)
                                                                                                                                              where deviceMapping.Device.Bluetooth is string
                                                                                                                                              select deviceMapping.Device.Bluetooth).ToArray()));
                 }
-                services.AddSingleton(sp => sp.GetRequiredService<IOptions<MotionConfiguration>>().Value.Motors.Select(ConfiguredMotor.ToMotor).ToList());
                 services.AddSingleton(sp => Observable.Merge(sp.GetRequiredService<IEnumerable<IGamepadProvider>>().Select(gamepads => gamepads.GamepadStateChanges)).Select(sp.GetRequiredService<IOptions<GamepadMappingConfiguration>>().Value.Devices).Replay(1).RefCount());
-                services.AddSingleton(sp => sp.GetRequiredService<IObservable<EventedMappedGamepad>>().SelectVector("moveX", "moveY")
-                                                .Select(direction => from entry in Enumerable.Zip(
-                                                                        sp.GetRequiredService<List<ConfiguredMotor>>(),
-                                                                        from degrees in sp.GetRequiredService<IOptions<BbUnitConfiguration>>().Value.MotorOrientation
+                services.AddSingleton(sp => Observable.CombineLatest(
+                    sp.GetRequiredService<IObservable<IEnumerable<Motor>>>(),
+                    sp.GetRequiredService<IObservable<EventedMappedGamepad>>().SelectVector("moveX", "moveY"),
+                    sp.GetRequiredService<IOptionsMonitor<BbUnitConfiguration>>().Observe(),
+                    (motors, direction, bbUnitConfiguration) => (motors: motors.ToArray(), direction, bbUnitConfiguration)
+                )
+                                                .Select(e => from entry in Enumerable.Zip(
+                                                                        e.motors,
+                                                                        from degrees in e.bbUnitConfiguration.MotorOrientation.Take(e.motors.Length)
                                                                         let radians = degrees * Math.PI / 180
                                                                         select radians is double r ? new Vector2(Math.Cos(r), Math.Sin(r)) : null,
-                                                                        (configuredMotor, direction) => (configuredMotor, direction)
+                                                                        (motor, direction) => (motor, direction)
                                                                      )
-                                                                     let speed = direction.Dot(entry.direction)
-                                                                     select new MotorDriveState(entry.configuredMotor, state: speed switch
+                                                                     let speed = e.direction.Dot(entry.direction)
+                                                                     select new MotorDriveState(entry.motor, state: speed switch
                                                                      {
                                                                          var speed when speed > 0 => new MotorState { Direction = MotorDirection.Forward, Speed = Math.Clamp(speed, double.Epsilon, 1) },
                                                                          var speed when speed < 0 => new MotorState { Direction = MotorDirection.Backward, Speed = Math.Clamp(-speed, double.Epsilon, 1) },

@@ -1,4 +1,4 @@
 ﻿namespace BB8
 {
-    public record MotorDriveState(RaspberryPi.ConfiguredMotor motor, Domain.MotorState state);
+    public record MotorDriveState(Domain.Motor motor, Domain.MotorState state);
 }

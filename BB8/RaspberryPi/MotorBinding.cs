@@ -1,4 +1,5 @@
 ﻿using BB8.Domain;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,14 +31,20 @@ namespace BB8.RaspberryPi
         public IObservable<byte> SerialData => sentSerialData.AsObservable();
         public IObservable<IReadOnlyList<double>> MotorPower { get; }
 
-        public MotorBinding(IGpioController gpioPins, MotorSerialControlPins serialConfiguration, IEnumerable<ConfiguredMotor> motors)
+        public IObservable<IEnumerable<Motor>> Motors { get; }
+
+        public MotorBinding(IGpioController gpioPins, IOptions<MotionConfiguration> motionConfiguration)
         {
-            serialDataPin = gpioPins[serialConfiguration.GpioData];
-            serialLatchPin = gpioPins[serialConfiguration.GpioLatch];
-            serialClockPin = gpioPins[serialConfiguration.GpioClock];
+            var subscriptions = new CompositeDisposable();
+            serialDataPin = gpioPins[motionConfiguration.Value.Serial.GpioData];
+            serialLatchPin = gpioPins[motionConfiguration.Value.Serial.GpioLatch];
+            serialClockPin = gpioPins[motionConfiguration.Value.Serial.GpioClock];
             serialDataPin.PinMode = GpioPinDriveMode.Output;
             serialLatchPin.PinMode = GpioPinDriveMode.Output;
             serialClockPin.PinMode = GpioPinDriveMode.Output;
+
+            var motors = motionConfiguration.Value.Motors.Select(ConfiguredMotor.ToMotor).ToList();
+            Motors = Observable.Return(motors.Select(m => m.Motor).ToImmutableList());
 
             serial = new SerialDigitizer(serialDataPin, serialClockPin, serialLatchPin, 8);
 
@@ -55,7 +62,6 @@ namespace BB8.RaspberryPi
                 });
             this.serialObservable = serialObservable;
 
-            var subscriptions = new CompositeDisposable();
             this.subscriptions = subscriptions;
             subscriptions.Add(serialObservable.Subscribe());
 

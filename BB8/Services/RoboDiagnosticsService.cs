@@ -19,15 +19,15 @@ namespace BB8.Services
         private readonly IObservable<EventedMappedGamepad> gamepad;
         private readonly IObservable<MotorDriveState[]> motorStates;
         private readonly MotorBinding motorBinding;
-        private readonly BbUnitConfiguration unitConfiguration;
+        private readonly IOptionsMonitor<BbUnitConfiguration> unitConfiguration;
 
-        public RoboDiagnosticsService(ILogger<RoboDiagnosticsService> logger, IObservable<EventedMappedGamepad> gamepad, IObservable<MotorDriveState[]> motorStates, MotorBinding motorBinding, IOptions<BbUnitConfiguration> unitConfiguration)
+        public RoboDiagnosticsService(ILogger<RoboDiagnosticsService> logger, IObservable<EventedMappedGamepad> gamepad, IObservable<MotorDriveState[]> motorStates, MotorBinding motorBinding, IOptionsMonitor<BbUnitConfiguration> unitConfiguration)
         {
             _logger = logger;
             this.gamepad = gamepad;
             this.motorStates = motorStates;
             this.motorBinding = motorBinding;
-            this.unitConfiguration = unitConfiguration.Value;
+            this.unitConfiguration = unitConfiguration;
         }
 
         public override Task GetController(EmptyRequest request, IServerStreamWriter<ControllerReply> responseStream, ServerCallContext context) =>
@@ -79,9 +79,10 @@ namespace BB8.Services
 
         public override Task<UnitConfigurationReply> GetUnitConfiguration(EmptyRequest request, ServerCallContext context)
         {
+            // TODO - stream changes
             return Task.FromResult(new UnitConfigurationReply
             {
-                MotorOrientation = { unitConfiguration.MotorOrientation.Select(n => n ?? -1) }
+                MotorOrientation = { unitConfiguration.CurrentValue.MotorOrientation.Select(n => n ?? -1) }
             });
         }
     }

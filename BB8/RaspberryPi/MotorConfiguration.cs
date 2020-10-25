@@ -33,9 +33,4 @@ namespace BB8.RaspberryPi
                 _ => Math.Clamp(((1 - DeadZone) * state.Speed + DeadZone) * BoostFactor, 0.0, 1.0),
             };
     }
-
-    public record DriveMotorConfiguration : MotorConfiguration
-    {
-        public double Orientation { get; set; }
-    }
 }

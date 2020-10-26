@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useMemo, useEffect } from "react";
 import { HubConnectionBuilder, HubConnection } from "@microsoft/signalr";
+import { from } from "rxjs";
+import { map } from "rxjs/operators";
 
 export function useNewRobotConnection() {
     const connection = useMemo(() => new HubConnectionBuilder().withUrl("/robot").build(), []);
@@ -35,4 +37,11 @@ export function RobotConnectionScope(props: { children: React.ReactNode }) {
             {props.children}
         </RobotConnectionContext.Provider>
     )
+}
+
+export function useRobotConnection$() {
+    const { connection, connected } = useRobotConnection();
+    const connection$ = React.useMemo(() => from(connected).pipe(map(_ => connection)), [connection, connected]);
+
+    return connection$;
 }

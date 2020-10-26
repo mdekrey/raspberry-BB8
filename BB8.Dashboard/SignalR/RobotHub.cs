@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using BB8.Services;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading;
@@ -46,7 +47,13 @@ namespace BB8.Dashboard.SignalR
                 .AsGrpc(client.GetMotionConfiguration)
                 .AsSignalRChannel(cancellationToken);
 
-        public async Task<BB8.Services.MotionConfigurationMessage> SetMotionConfiguration(BB8.Services.MotionConfigurationMessage message) =>
-            await client.SetMotionConfigurationAsync(message).ResponseAsync;
+        public async Task<BB8.Services.MotionConfigurationMessage> SetMotionConfiguration(MotionConfigurationRequest message) =>
+            await client.SetMotionConfigurationAsync(new MotionConfigurationMessage
+            {
+                Motors = { message.motors },
+                Serial = message.serial
+            }).ResponseAsync;
+
+        public record MotionConfigurationRequest(MotorConfigurationMessage[] motors, SerialConfigurationMessage serial);
     }
 }

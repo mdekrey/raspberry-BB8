@@ -36,17 +36,19 @@ export type UnitConfigurationReply = {
 };
 
 export type MotionConfigurationMessage = {
-  motors: {
-    PwmGpioPin: number;
-    ForwardBit: number;
-    BackwardBit: number;
-    Buffer: number;
-    DeadZone: number;
-    BoostFactor: number;
-  }[];
+  motors: MotorConfigurationMessage[];
   serial: {
     dataPin: number;
     latchPin: number;
     clockPin: number;
   };
+};
+
+export type MotorConfigurationMessage = {
+  pwmGpioPin: number;
+  forwardBit: number;
+  backwardBit: number;
+  buffer: number;
+  deadZone: number;
+  boostFactor: number;
 };

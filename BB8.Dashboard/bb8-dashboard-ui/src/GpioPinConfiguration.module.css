@@ -1,0 +1,19 @@
+.gpio-table {
+    border-collapse: collapse;
+    font-size: 8px;
+}
+.gpio-table thead {
+    font-weight: bold;
+}
+
+.gpio-table td {
+    min-width: 10em;
+}
+
+.gpio-table tr :nth-child(2) {
+    text-align: right;
+}
+
+.gpio-table tbody tr:nth-child(odd) {
+    background-color: #ccc;
+}

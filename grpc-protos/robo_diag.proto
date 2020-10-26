@@ -9,7 +9,9 @@ service RoboDiagnostics {
   rpc GetMotorState (EmptyRequest) returns (stream MotorStateReply);
   rpc GetGpioConfiguration (EmptyRequest) returns (GpioConfigurationReply);
   rpc GetGpioState (EmptyRequest) returns (stream GpioStateReply);
-  rpc GetUnitConfiguration (EmptyRequest) returns (UnitConfigurationReply);
+  rpc GetUnitConfiguration (EmptyRequest) returns (stream UnitConfigurationReply);
+  rpc GetMotionConfiguration (EmptyRequest) returns (stream MotionConfigurationMessage);
+  rpc SetMotionConfiguration (MotionConfigurationMessage) returns (MotionConfigurationMessage);
 }
 
 message EmptyRequest {
@@ -49,4 +51,24 @@ message GpioStateReply {
 
 message UnitConfigurationReply {
 	repeated int32 motorOrientation = 1;
+}
+
+message MotionConfigurationMessage {
+	repeated MotorConfigurationMessage motors = 1;
+	SerialConfigurationMessage serial = 2;
+}
+
+message MotorConfigurationMessage {
+    int32 PwmGpioPin = 1;
+    int32 ForwardBit = 2;
+    int32 BackwardBit = 3;
+    double Buffer = 4;
+    double DeadZone = 5;
+    double BoostFactor = 6;
+}
+
+message SerialConfigurationMessage {
+	int32 dataPin = 1;
+	int32 latchPin = 2;
+	int32 clockPin = 3;
 }

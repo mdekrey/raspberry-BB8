@@ -28,20 +28,25 @@ namespace BB8.Dashboard.SignalR
                 .AsGrpc(client.GetMotorState)
                 .AsSignalRChannel(cancellationToken);
 
-        public async Task<BB8.Services.GpioConfigurationReply> GetGpioConfiguration()
-        {
-            return await client.GetGpioConfigurationAsync(new Services.EmptyRequest()).ResponseAsync;
-        }
+        public async Task<BB8.Services.GpioConfigurationReply> GetGpioConfiguration() =>
+            await client.GetGpioConfigurationAsync(new Services.EmptyRequest()).ResponseAsync;
 
         public ChannelReader<BB8.Services.GpioStateReply> GetGpioState(CancellationToken cancellationToken) =>
             Observable.Return(new Services.EmptyRequest())
                 .AsGrpc(client.GetGpioState)
                 .AsSignalRChannel(cancellationToken);
 
+        public ChannelReader<BB8.Services.UnitConfigurationReply> GetUnitConfiguration(CancellationToken cancellationToken) =>
+            Observable.Return(new Services.EmptyRequest())
+                .AsGrpc(client.GetUnitConfiguration)
+                .AsSignalRChannel(cancellationToken);
 
-        public async Task<BB8.Services.UnitConfigurationReply> GetUnitConfiguration()
-        {
-            return await client.GetUnitConfigurationAsync(new Services.EmptyRequest()).ResponseAsync;
-        }
+        public ChannelReader<BB8.Services.MotionConfigurationMessage> GetMotionConfiguration(CancellationToken cancellationToken) =>
+            Observable.Return(new Services.EmptyRequest())
+                .AsGrpc(client.GetMotionConfiguration)
+                .AsSignalRChannel(cancellationToken);
+
+        public async Task<BB8.Services.MotionConfigurationMessage> SetMotionConfiguration(BB8.Services.MotionConfigurationMessage message) =>
+            await client.SetMotionConfigurationAsync(message).ResponseAsync;
     }
 }

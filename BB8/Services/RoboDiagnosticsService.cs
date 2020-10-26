@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace BB8.Services
@@ -20,14 +21,16 @@ namespace BB8.Services
         private readonly IObservable<MotorDriveState[]> motorStates;
         private readonly MotorBinding motorBinding;
         private readonly IOptionsMonitor<BbUnitConfiguration> unitConfiguration;
+        private readonly IOptionsMonitor<MotionConfiguration> motionConfiguration;
 
-        public RoboDiagnosticsService(ILogger<RoboDiagnosticsService> logger, IObservable<EventedMappedGamepad> gamepad, IObservable<MotorDriveState[]> motorStates, MotorBinding motorBinding, IOptionsMonitor<BbUnitConfiguration> unitConfiguration)
+        public RoboDiagnosticsService(ILogger<RoboDiagnosticsService> logger, IObservable<EventedMappedGamepad> gamepad, IObservable<MotorDriveState[]> motorStates, MotorBinding motorBinding, IOptionsMonitor<BbUnitConfiguration> unitConfiguration, IOptionsMonitor<MotionConfiguration> motionConfiguration)
         {
             _logger = logger;
             this.gamepad = gamepad;
             this.motorStates = motorStates;
             this.motorBinding = motorBinding;
             this.unitConfiguration = unitConfiguration;
+            this.motionConfiguration = motionConfiguration;
         }
 
         public override Task GetController(EmptyRequest request, IServerStreamWriter<ControllerReply> responseStream, ServerCallContext context) =>
@@ -77,13 +80,39 @@ namespace BB8.Services
                 .WithLatestFrom(motorBinding.SerialData, motorBinding.MotorPower, (serialData, motorPower) => new GpioStateReply { Serial = serialData, MotorPower = { motorPower } })
                 .Subscribe(responseStream, context);
 
-        public override Task<UnitConfigurationReply> GetUnitConfiguration(EmptyRequest request, ServerCallContext context)
-        {
-            // TODO - stream changes
-            return Task.FromResult(new UnitConfigurationReply
+        public override Task GetUnitConfiguration(EmptyRequest request, IServerStreamWriter<UnitConfigurationReply> responseStream, ServerCallContext context) =>
+            unitConfiguration.Observe()
+                .Select(v => new UnitConfigurationReply
+                {
+                    MotorOrientation = { v.MotorOrientation.Select(n => n ?? -1) }
+                })
+            .Subscribe(responseStream, context);
+
+        public override Task GetMotionConfiguration(EmptyRequest request, IServerStreamWriter<MotionConfigurationMessage> responseStream, ServerCallContext context) =>
+            motionConfiguration.Observe()
+                .Select(v => ConfigurationToMessage(v))
+            .Subscribe(responseStream, context);
+
+        private static MotionConfigurationMessage ConfigurationToMessage(MotionConfiguration v) => 
+            new MotionConfigurationMessage
             {
-                MotorOrientation = { unitConfiguration.CurrentValue.MotorOrientation.Select(n => n ?? -1) }
-            });
+                Motors = { v.Motors.Select(m => new MotorConfigurationMessage { BackwardBit = m.BackwardBit, BoostFactor = m.BoostFactor, Buffer = m.Buffer, DeadZone = m.DeadZone, ForwardBit = m.ForwardBit, PwmGpioPin = m.PwmGpioPin }) },
+                Serial = new SerialConfigurationMessage { ClockPin = v.Serial.GpioClock, DataPin = v.Serial.GpioData, LatchPin = v.Serial.GpioLatch },
+            };
+
+        public override Task<MotionConfigurationMessage> SetMotionConfiguration(MotionConfigurationMessage request, ServerCallContext context)
+        {
+            var config = new MotionConfiguration
+            {
+                Motors = request.Motors
+                    .Select(m => new MotorConfiguration { BackwardBit = (byte)m.BackwardBit, BoostFactor = m.BoostFactor, Buffer = m.Buffer, DeadZone = m.DeadZone, ForwardBit = (byte)m.ForwardBit, PwmGpioPin = m.PwmGpioPin })
+                    .ToList(),
+                Serial = new MotorSerialControlPins { GpioClock = request.Serial.ClockPin, GpioData = request.Serial.DataPin, GpioLatch = request.Serial.LatchPin }
+            };
+
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(config, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+
+            return Task.FromResult(ConfigurationToMessage(motionConfiguration.CurrentValue));
         }
     }
 }

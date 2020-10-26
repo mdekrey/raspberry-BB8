@@ -20,8 +20,6 @@
         "Buffer": 0.3
       }
     ],
-    "TestMotor": 2,
-    "GpioPwmMotor": 4,
     "Serial": {
       "GpioData": 17,
       "GpioLatch": 27,

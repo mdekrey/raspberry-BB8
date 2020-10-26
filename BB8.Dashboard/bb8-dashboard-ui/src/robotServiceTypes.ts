@@ -33,4 +33,20 @@ export type GpioStateReply = {
 
 export type UnitConfigurationReply = {
   motorOrientation: number[];
-}
+};
+
+export type MotionConfigurationMessage = {
+  motors: {
+    PwmGpioPin: number;
+    ForwardBit: number;
+    BackwardBit: number;
+    Buffer: number;
+    DeadZone: number;
+    BoostFactor: number;
+  }[];
+  serial: {
+    dataPin: number;
+    latchPin: number;
+    clockPin: number;
+  };
+};

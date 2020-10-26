@@ -25,7 +25,7 @@ namespace BB8.RaspberryPi
         private readonly Subject<(int index, double power)> motorPower = new();
         private readonly Subject<byte> sentSerialData = new();
 
-        public IObservable<byte> SerialData => sentSerialData.AsObservable();
+        public IObservable<byte> SerialData { get; }
         public IObservable<IReadOnlyList<double>> MotorPower { get; }
 
         public MotorBinding(IGpioController gpioPins, IOptionsMonitor<MotionConfiguration> motionConfiguration, IObservable<IReadOnlyList<Motor>> motors)
@@ -51,6 +51,9 @@ namespace BB8.RaspberryPi
                 )
                     .Select((e, index) => (e.configuration, e.motor, index))
             );
+
+            SerialData = sentSerialData.StartWith((byte)0).Replay(1).RefCount();
+            subscriptions.Add(SerialData.Subscribe());
 
             var serialObservable = motorConfiguration.Select(e => Observable.CombineLatest(e.Select(kvp => kvp.motor.Select(state => (MotorState: state, Configuration: kvp.configuration)))))
                 .Switch()

@@ -160,34 +160,6 @@ module panelMain() {
     }
 }
 
-module panelMainBottom() {
-    *difference() {
-        intersection() {
-            panel() children();
-            translate([0, 0, -panelHeight + ringThickness - insertionTolerance])
-            cube([radius * 2, radius*2, radius*2], center=true);
-        }
-        linear_extrude(height=radius)
-        for (i = [45,180 + 45])
-        rotate([0,0,i])
-        polygon([
-            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap)],
-            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 5)],
-            [+insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 5)],
-            [+insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 10)],
-            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 10)],
-            [+insertionTolerance / 2, 0],
-            [-insertionTolerance / 2, 0],
-            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 10 + insertionTolerance)],
-            [-insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 10 + insertionTolerance)],
-            [-insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 5 - insertionTolerance)],
-            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 5 - insertionTolerance)],
-            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap)],
-        ]);
-    }
-
-}
-
 module panelDesign(panelNumber) {
     intersection() {
         difference() {

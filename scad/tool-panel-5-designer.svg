@@ -1,0 +1,104 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <g transform-origin="center"  transform="rotate(45)">
+    <g fill="transparent">
+        <g transform-origin="center" transform="rotate(0)">
+            <image href="../BB8 Ball Pattern.jpg" height="2550" width="3300" transform="scale(0.47169811320754716981132075471698, 0.47169811320754716981132075471698) translate(-2611,-1062)"/>
+        </g>
+        <rect height="201" width="201" x="-0.5" y="-0.5" stroke-width="1" stroke="black" fill="transparent" />
+
+        <g stroke="rgba(255, 0, 255, 0.2)">
+            <line x1="10" x2="10" y1="0" y2="200" />
+            <line x1="20" x2="20" y1="0" y2="200" />
+            <line x1="30" x2="30" y1="0" y2="200" />
+            <line x1="40" x2="40" y1="0" y2="200" />
+            <line x1="50" x2="50" y1="0" y2="200" stroke="rgba(255, 0, 255, 0.5)" />
+            <line x1="60" x2="60" y1="0" y2="200" />
+            <line x1="70" x2="70" y1="0" y2="200" />
+            <line x1="80" x2="80" y1="0" y2="200" />
+            <line x1="90" x2="90" y1="0" y2="200" />
+            <line x1="100" x2="100" y1="0" y2="200" stroke="rgba(255, 0, 255, 0.5)" />
+            <line x1="110" x2="110" y1="0" y2="200" />
+            <line x1="120" x2="120" y1="0" y2="200" />
+            <line x1="130" x2="130" y1="0" y2="200" />
+            <line x1="140" x2="140" y1="0" y2="200" />
+            <line x1="150" x2="150" y1="0" y2="200" stroke="rgba(255, 0, 255, 0.5)" />
+            <line x1="160" x2="160" y1="0" y2="200" />
+            <line x1="170" x2="170" y1="0" y2="200" />
+            <line x1="180" x2="180" y1="0" y2="200" />
+            <line x1="190" x2="190" y1="0" y2="200" />
+
+            <line y1="10" y2="10" x1="0" x2="200" />
+            <line y1="20" y2="20" x1="0" x2="200" />
+            <line y1="30" y2="30" x1="0" x2="200" />
+            <line y1="40" y2="40" x1="0" x2="200" />
+            <line y1="50" y2="50" x1="0" x2="200" stroke="rgba(255, 0, 255, 0.5)" />
+            <line y1="60" y2="60" x1="0" x2="200" />
+            <line y1="70" y2="70" x1="0" x2="200" />
+            <line y1="80" y2="80" x1="0" x2="200" />
+            <line y1="90" y2="90" x1="0" x2="200" />
+            <line y1="100" y2="100" x1="0" x2="200" stroke="rgba(255, 0, 255, 0.5)" />
+            <line y1="110" y2="110" x1="0" x2="200" />
+            <line y1="120" y2="120" x1="0" x2="200" />
+            <line y1="130" y2="130" x1="0" x2="200" />
+            <line y1="140" y2="140" x1="0" x2="200" />
+            <line y1="150" y2="150" x1="0" x2="200" stroke="rgba(255, 0, 255, 0.5)" />
+            <line y1="160" y2="160" x1="0" x2="200" />
+            <line y1="170" y2="170" x1="0" x2="200" />
+            <line y1="180" y2="180" x1="0" x2="200" />
+            <line y1="190" y2="190" x1="0" x2="200" />
+        </g>
+
+        <g  stroke="rgba(0, 255, 0, 0.2)" transform-origin="center">
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-5)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-10)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-15)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-20)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-25)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-30)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-35)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-40)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-45)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-50)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-55)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-60)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-65)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-70)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-75)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-80)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-85)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-95)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-100)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-105)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-110)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-115)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-120)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-125)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-130)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-135)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-140)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-145)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-150)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-155)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-160)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-165)" stroke="rgba(0, 255, 0, 0.4)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-170)" />
+            <line y1="100" y2="100" x1="0" x2="200" transform-origin="center" transform="rotate(-175)" />
+        </g>
+
+        <circle cx="100" cy="100" r="91.5" stroke="rgba(0, 0, 255, 0.375)" />
+        <circle cx="100" cy="100" r="53.5" stroke="rgba(0, 0, 255, 0.375)" />
+        <circle cx="100" cy="100" r="87" stroke="rgba(0, 0, 255, 0.375)" />
+        <circle cx="100" cy="100" r="63" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="64" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="69" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="75" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
+        <circle cx="100" cy="100" r="80" stroke="rgba(0, 0, 255, 0.375)" stroke-width="0.5" />
+    </g>
+    <g fill="transparent" stroke="red" style="opacity: 0.75">
+        <path d="M137.830213,62.169787 A53.500000,53.500000 0 0 1 146.332359,73.250000 L179.241324,54.250000 A91.500000,91.500000 0 0 1 191.151815,107.974750 L186.668939,107.582550 A87.000000,87.000000 0 0 1 181.753258,129.755752 L185.981875,131.294843 A91.500000,91.500000 0 0 1 179.241324,145.750000 L146.332359,126.750000 A53.500000,53.500000 0 0 1 62.169787,137.830213 L92.928932,107.071068 L91.267231,97.419060 L110.342851,78.343441 L115.171683,79.171463 L122.166383,72.176762 L121.338361,67.347930 L132.173359,56.512933 Z M55.452273,144.547727 A63.000000,63.000000 0 0 1 37.000000,100.000000 L8.500000,100.000000 A91.500000,91.500000 0 0 0 35.299730,164.700270 Z M37.239734,94.509188 A63.000000,63.000000 0 0 1 40.799365,78.452731 L35.161209,76.400610 A69.000000,69.000000 0 0 0 31.262566,93.986254 Z M25.285398,93.463319 A75.000000,75.000000 0 0 1 29.523053,74.348489 L23.884898,72.296368 A81.000000,81.000000 0 0 0 19.308229,92.940385 Z M71.398599,43.866589 A63.000000,63.000000 0 0 1 128.601401,43.866589 L141.540131,18.472903 A91.500000,91.500000 0 0 0 58.459869,18.472903 Z" />
+    </g>
+    <g fill="transparent" stroke="black" style="opacity: 0.75">
+        <path d="M90.000000,123.000000 A13.000000,13.000000 0 0 1 64.000000,123.000000 A13.000000,13.000000 0 0 1 90.000000,123.000000 Z M153.500000,100.000000 A53.500000,53.500000 0 0 0 46.500000,100.000000 L54.500000,100.000000 A32.500000,32.500000 0 0 1 119.500000,100.000000 L136.500000,100.000000 A42.500000,42.500000 0 0 0 115.250000,63.193920 L118.000000,58.430781 A48.000000,48.000000 0 0 1 142.000000,100.000000 Z" />
+    </g>
+    </g>
+</svg>

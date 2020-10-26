@@ -75,7 +75,7 @@ module panelRing() {
 panelAdditionalWallThickness = 0; // cos(panelDegrees) * maxLip;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;
 panelLayerWall = radius - (radius - panelInnerWall) * 0.6;
-module panel(includeInternalBolts = false) {
+module panel() {
     difference() {
         rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset])
         intersection() {
@@ -104,11 +104,12 @@ module panel(includeInternalBolts = false) {
 
         }
 
-    difference() {
-        children();
+        difference() {
+            children();
+            sphere(r=1);
 
-        sphere(r=radius - panelDesignRadius, $fn=$fnDetail);
-    }
+            sphere(r=radius - panelDesignRadius, $fn=$fnDetail);
+        }
 
         for (i = [0 : 90 : 360]) {
             rotate([0, panelArmBoltDegrees, i])
@@ -132,14 +133,32 @@ module panelMainTop(largeSize /* = true */) {
     }
 }
 
-module panelMainBottom(largeSize /* = true */) {
-    intersection() {
-        panel() children();
-        translate([0, 0, -panelHeight + ringThickness - insertionTolerance])
-        rotate([0,0,20 + (largeSize ? 180 : 0)])
-        translate([radius + insertionTolerance / 2, 0, 0])
-        cube([radius * 2, radius*2, radius*2], center=true);
+module panelMainBottom() {
+    difference() {
+        intersection() {
+            panel() children();
+            translate([0, 0, -panelHeight + ringThickness - insertionTolerance])
+            cube([radius * 2, radius*2, radius*2], center=true);
+        }
+        linear_extrude(height=radius)
+        for (i = [45,180 + 45])
+        rotate([0,0,i])
+        polygon([
+            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap)],
+            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 5)],
+            [+insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 5)],
+            [+insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 10)],
+            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 10)],
+            [+insertionTolerance / 2, 0],
+            [-insertionTolerance / 2, 0],
+            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 10 + insertionTolerance)],
+            [-insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 10 + insertionTolerance)],
+            [-insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 5 - insertionTolerance)],
+            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 5 - insertionTolerance)],
+            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap)],
+        ]);
     }
+
 }
 
 module panelDesign(panelNumber) {

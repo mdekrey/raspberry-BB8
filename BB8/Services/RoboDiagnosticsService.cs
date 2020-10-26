@@ -100,7 +100,7 @@ namespace BB8.Services
                 Serial = new SerialConfigurationMessage { ClockPin = v.Serial.GpioClock, DataPin = v.Serial.GpioData, LatchPin = v.Serial.GpioLatch },
             };
 
-        public override Task<MotionConfigurationMessage> SetMotionConfiguration(MotionConfigurationMessage request, ServerCallContext context)
+        public override async Task<MotionConfigurationMessage> SetMotionConfiguration(MotionConfigurationMessage request, ServerCallContext context)
         {
             var config = new MotionConfiguration
             {
@@ -110,9 +110,16 @@ namespace BB8.Services
                 Serial = new MotorSerialControlPins { GpioClock = request.Serial.ClockPin, GpioData = request.Serial.DataPin, GpioLatch = request.Serial.LatchPin }
             };
 
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(config, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+            // TODO - I don't like having a hard-coded path here...
+            var jsonPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "bb8.json");
+            var data = System.IO.File.Exists(jsonPath)
+                ? System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(await System.IO.File.ReadAllTextAsync(jsonPath)) ?? new Dictionary<string, object>()
+                : new Dictionary<string, object>();
+            data["motion"] = config;
+            var json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            await System.IO.File.WriteAllTextAsync(jsonPath, json);
 
-            return Task.FromResult(ConfigurationToMessage(motionConfiguration.CurrentValue));
+            return ConfigurationToMessage(motionConfiguration.CurrentValue);
         }
     }
 }

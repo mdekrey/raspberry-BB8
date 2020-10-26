@@ -120,21 +120,48 @@ module panel() {
     }
 }
 
-module panelMainTop(largeSize /* = true */) {
-    intersection() {
+module panelMain() {
+    difference() {
         panel() children();
 
         translate([
             0, 0,
             radius * 2 - panelHeight + ringThickness])
-        rotate([0,0,90 + 20 + (largeSize ? 180 : 0)])
-        translate([radius + insertionTolerance / 2, 0, 0])
-        cube([radius * 2, radius*2, radius*2], center=true);
+        rotate([0,0,90 + 20])
+        translate([- insertionTolerance / 2, 0, 0])
+        cube([insertionTolerance, radius*2, radius*2], center=true);
+
+        translate([
+            0, 0,
+            radius - panelHeight + ringThickness - insertionTolerance / 2])
+        cube([radius*2, radius*2, insertionTolerance], center=true);
+
+
+        translate([
+            0, 0,
+            -panelHeight + ringThickness])
+        linear_extrude(height=radius)
+        for (i = [45,180 + 45])
+        rotate([0,0,i])
+        polygon([
+            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap)],
+            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 5)],
+            [+insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 5)],
+            [+insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 10)],
+            [+insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 10)],
+            [+insertionTolerance / 2, 0],
+            [-insertionTolerance / 2, 0],
+            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 10 + insertionTolerance)],
+            [-insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 10 + insertionTolerance)],
+            [-insertionTolerance / 2 + 5, +(panelRingInnerRadius + panelRingInnerOverlap - 5 - insertionTolerance)],
+            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap - 5 - insertionTolerance)],
+            [-insertionTolerance / 2, +(panelRingInnerRadius + panelRingInnerOverlap)],
+        ]);
     }
 }
 
 module panelMainBottom() {
-    difference() {
+    *difference() {
         intersection() {
             panel() children();
             translate([0, 0, -panelHeight + ringThickness - insertionTolerance])
@@ -446,14 +473,8 @@ module visibleBoltHole() {
     cylinder(r = visibleBoltHole, h=wallThickness * 2, $fn=$fn);
 }
 
-module toolPanelBase() {
-    panelMainTop(true) children();
-    panelMainTop(false) children();
-    panelMainBottom();
-}
-
 module toolPanel(panel) {
-    toolPanelBase()
+    panelMain()
     union()
     {
         panelDesignEmboss(panel);

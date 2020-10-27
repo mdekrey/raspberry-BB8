@@ -45,12 +45,14 @@ namespace BB8.RaspberryPi
             var motorConfiguration = Observable.CombineLatest(motionConfiguration.Observe().Select(config => config.Motors),
                 motors,
                 (configurations, motors) => Enumerable.Zip(
-                    configurations.Take(motors.Count), 
-                    motors.Take(configurations.Count), 
+                    configurations.Take(motors.Count),
+                    motors.Take(configurations.Count),
                     (configuration, motor) => (configuration, motor)
                 )
                     .Select((e, index) => (e.configuration, e.motor, index))
-            );
+            )
+                    .Replay(1)
+                    .RefCount();
 
             SerialData = sentSerialData.StartWith((byte)0).Replay(1).RefCount();
             subscriptions.Add(SerialData.Subscribe());
@@ -76,7 +78,7 @@ namespace BB8.RaspberryPi
             MotorPower = motorPower
                 .Scan(ImmutableDictionary<int, double>.Empty, (prev, next) => prev.SetItem(next.index, next.power))
                 .StartWith(ImmutableDictionary<int, double>.Empty)
-                .Select(dict => Enumerable.Range(0, dict.Keys.DefaultIfEmpty(0).Max()).Select(key => dict[key]).ToArray())
+                .Select(dict => Enumerable.Range(0, dict.Keys.DefaultIfEmpty(-1).Max() + 1).Select(key => dict.TryGetValue(key, out var value) ? value : 0).ToArray())
                 .Replay(1)
                 .RefCount();
             subscriptions.Add(MotorPower.Subscribe());
@@ -97,8 +99,10 @@ namespace BB8.RaspberryPi
             return new SerialDigitizer(gpioPins[cfg.GpioData], gpioPins[cfg.GpioClock], gpioPins[cfg.GpioLatch], 8);
         }
 
-        private static byte ToFlag((MotorState MotorState, MotorConfiguration Configuration) state) => 
-            state.Configuration.ToFlag(state.MotorState);
+        private static byte ToFlag((MotorState MotorState, MotorConfiguration Configuration) state) =>
+            state.Configuration.ToSpeed(state.MotorState) > 0
+                ? state.Configuration.ToFlag(state.MotorState)
+                : 0;
 
         ~MotorBinding()
         {

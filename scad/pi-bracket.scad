@@ -68,10 +68,11 @@ motorWidthFactor = ((motorPlateLeftOuter * rot120 - motorPlateRightOuter * rot12
 armThickness = 0.4 * 25.4;
 arcRadius = sqrt((arcCenter - motorCenter) * (arcCenter - motorCenter));
 
-batteryDimensions = [152, 3.86*25.4, 3.7*25.4];
+batteryDimensions = [70, 90, 101];
 batteryDimensionsHalf = batteryDimensions / 2;
 batteryCaseThickness = 3;
-circuitryToBatteryBracketMounts = [-0.4, 0, 0.4] * batteryDimensions.x;
+circuitryToBatteryBracketMounts = [-0.5, 0, 0.47] * batteryDimensions.x;
+batteryBracketBackMounts = [-0.4, 0, 0.4] * batteryDimensions.x;
 
 centerPlatformMiddleRadius = 70 - armThickness;
 
@@ -209,13 +210,13 @@ module ankerBracket() {
 }
 
 module batteryZipTieHoles() {
-    for (x = [-0.35, 0.35])
-        for (y = [-0.5, 0.5])
-            translate([x * batteryDimensions.x, y * (batteryDimensions.y + batterySpaceBetween)])
+    for (x = [-0.35, 0.35]* batteryDimensions.x)
+        for (y = [-0.5, 0.5] * (batteryDimensions.y + batteryBraceThickness * 2))
+            translate([x, y])
             children();
 
     for (i = [[-0.5, -1/3],[-0.5,1/3], [0.5,0.2], [0.5,-0.2]])
-        translate([i.x * (batteryDimensions.x + batterySpaceBetween), i.y * batteryDimensions.y])
+        translate([i.x * (batteryDimensions.x + batteryBraceThickness), i.y * batteryDimensions.y])
         rotate(90)
         children();
 
@@ -254,96 +255,86 @@ module batteryAnchor() {
 }
 
 batteryBraceThickness = 6;
+module singleBatteryBracket() {
+    batteryBaseDimensions = [batteryDimensions.x, batteryDimensions.y];
+
+    linear_extrude(height = batteryLowerBracketThickness)
+    difference() {
+        offset(r = outerRadiusPi)
+        square([batteryDimensions.x + batterySpaceBetween * 2, max(batteryDimensions.y, batteryInnerHeight) + outerRadiusPi + batterySpaceBetween], center=true);
+
+        triangles(-batteryBaseDimensions/2, batteryBaseDimensions/2, batteryBraceThickness);
+
+        batteryZipTieHoles()
+        square(zipTieHole, center = true);
+    }
+
+    translate([0,0, -batteryBuffer])
+    linear_extrude(height = batteryBuffer + batteryLowerBracketThickness)
+    {
+        difference() {
+            union() {
+        translate([batteryDimensions.x / 2, 0])
+        square([6, batteryDimensions.y], center=true);
+
+        for (i = [-0.2, 0.2])
+        translate([0, i * batteryDimensions.y])
+        square([batteryDimensions.x, 6], center=true);
+            }
+
+            batteryZipTieHoles()
+            square([9,9], center=true);
+        }
+    }
+
+    translate([0,0, -batteryBuffer-batteryBraceThickness])
+    difference() {
+        linear_extrude(height = batteryBuffer+batteryBraceThickness)
+        difference()
+        {
+            union() {
+                translate([(batteryDimensions.x + batteryBraceThickness) / 2 + insertionTolerance / 2, 0])
+                square([batteryBraceThickness - insertionTolerance, batteryDimensions.y+batteryBraceThickness*3], center=true);
+
+                for (i = [-1, 1])
+                    translate([0, i * ((batteryDimensions.y / 2 + batteryBraceThickness) + insertionTolerance)])
+                    square([batteryDimensions.x+batteryBraceThickness*2, batteryBraceThickness], center=true);
+            }
+
+            batteryZipTieHoles()
+            square([9,9], center=true);
+        }
+
+        for (i = circuitryToBatteryBracketMounts)
+            for (x = [-1, 1])
+                translate([
+                    i,
+                    ((batteryDimensions.y / 2 + batteryBraceThickness) + insertionTolerance) * x,
+                    (batteryBuffer+batteryBraceThickness) - (outerRadiusPi + m3holeRadius + insertionTolerance * 3)
+                ])
+                rotate([90,0,0])
+                cylinder(r=m3holeRadius + insertionTolerance, h=batteryBraceThickness * 2, center=true);
+    }
+}
+
 module batteryBracket() {
     batteryBaseDimensions = [batteryDimensions.x, batteryDimensions.y];
 
     color("blue")
     translate([0,0,-batteryLowerBracketThickness])
     {
-        linear_extrude(height = batteryLowerBracketThickness)
-        difference() {
-            offset(r = outerRadiusPi)
-            square([batteryDimensions.x + batterySpaceBetween * 2, max(batteryDimensions.y, batteryInnerHeight) + outerRadiusPi + batterySpaceBetween], center=true);
+        singleBatteryBracket();
 
-            triangles(-batteryBaseDimensions/2, batteryBaseDimensions/2, batteryBraceThickness);
-
-            batteryZipTieHoles()
-            square(zipTieHole, center = true);
-        }
-
-        translate([0,0, -batteryBuffer])
-        linear_extrude(height = batteryBuffer + batteryLowerBracketThickness)
+        translate([0,0, - batteryDimensions.z - insertionTolerance * 2])
+        rotate([180,0,0])
+        translate([0,0,batteryBuffer * 2])
         {
-            translate([batteryDimensions.x / 2, 0])
-            square([6, batteryDimensions.y], center=true);
-
-            for (i = [-0.2, 0.2])
-            translate([0, i * batteryDimensions.y])
-            square([batteryDimensions.x, 6], center=true);
-        }
-
-        translate([0,0, -batteryBuffer-batteryBraceThickness])
-        difference() {
-            linear_extrude(height = batteryBuffer+batteryBraceThickness)
-            difference()
-            {
-                union() {
-                    translate([(batteryDimensions.x + batteryBraceThickness) / 2 + insertionTolerance, 0])
-                    square([batteryBraceThickness, batteryDimensions.y+batteryBraceThickness*2], center=true);
-
-                    for (i = [-1, 1])
-                        translate([0, i * ((batteryDimensions.y + batteryBraceThickness) / 2 + insertionTolerance)])
-                        square([batteryDimensions.x+batteryBraceThickness*2, batteryBraceThickness], center=true);
-                }
-
-                batteryZipTieHoles()
-                square([9,9], center=true);
-            }
-
-            for (i = circuitryToBatteryBracketMounts)
-                for (x = [-1, 1])
-                    translate([
-                        i,
-                        ((batteryDimensions.y + batteryBraceThickness) / 2 + insertionTolerance) * x,
-                        (batteryBuffer+batteryBraceThickness) - (outerRadiusPi + m3holeRadius + insertionTolerance * 3)
-                    ])
-                    rotate([90,0,0])
-                    cylinder(r=m3holeRadius + insertionTolerance, h=batteryBraceThickness * 2, center=true);
-        }
-
-        translate([0,0, -batteryBuffer - batteryDimensions.y - insertionTolerance])
-        {
-            linear_extrude(height = batteryLowerBracketThickness)
-            difference()
-            {
-                offset(r = outerRadiusPi)
-                square([batteryDimensions.x + batterySpaceBetween * 2, max(batteryDimensions.y, batteryInnerHeight) + outerRadiusPi + batterySpaceBetween], center=true);
-
-                triangles(-batteryBaseDimensions/2, batteryBaseDimensions/2, batteryBraceThickness);
-
-                batteryZipTieHoles()
-                square(zipTieHole, center=true);
-            }
-            linear_extrude(height = batteryBuffer+3+batteryLowerBracketThickness)
-            difference()
-            {
-                union() {
-                    translate([(batteryDimensions.x + batteryBraceThickness) / 2 + insertionTolerance, 0])
-                    square([batteryBraceThickness, batteryDimensions.y+batteryBraceThickness*2], center=true);
-
-                    for (i = [-1, 1])
-                        translate([0, i * ((batteryDimensions.y + batteryBraceThickness) / 2 + insertionTolerance)])
-                        square([batteryDimensions.x+batteryBraceThickness*2, batteryBraceThickness], center=true);
-                }
-
-                batteryZipTieHoles()
-                square([9,9], center=true);
-            }
+            singleBatteryBracket();
         }
     }
 
 
-    %translate([0,0,-batteryDimensions.z / 2 - batteryBuffer - insertionTolerance - batteryLowerBracketThickness])
+    %translate([0,0,-batteryBuffer -batteryDimensions.z / 2 - batteryLowerBracketThickness - insertionTolerance])
     battery();
 }
 

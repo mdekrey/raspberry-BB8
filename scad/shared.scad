@@ -34,7 +34,7 @@ panelDesignDepth = radius - cos(asin((panelRingInnerRadius * 0.92) / radius)) * 
 panelDesignRadius = wallThickness - 0.2 * millisPerInch;
 
 headRadius = radius * 295/506;
-headBaseHeight = 31 * headRadius / 147.5;
+headBaseHeight = 20 * headRadius / 147.5;
 headConeHeight = 20 * headRadius / 147.5;
 headConeRadius = 111.5 * headRadius / 147.5;
 headOffset = cos(asin(headConeRadius / radius)) * radius;
@@ -640,16 +640,53 @@ module head()
     {
         translate([0,0, headBaseHeight + headConeHeight])
         intersection() {
-            sphere(headRadius, $fn=$fnBody);
-
+            difference(){
+                sphere(headRadius, $fn=$fnBody);
+                translate([0,0, -wallThickness])
+                // make the head hollow; keep it a cone so that it doesn't need supports
+                cylinder(headRadius, headRadius, 0, $fn=$fnBody);
+            }
+            // Just the top half
             translate([-headRadius, -headRadius, 0])
             cube([headRadius*2, headRadius*2, headRadius]);
         }
 
         translate([0,0, headConeHeight])
-        cylinder(headBaseHeight, headRadius, headRadius, $fn=$fnBody);
+        difference() {
+            cylinder(headBaseHeight, headRadius, headRadius, $fn=$fnBody);
 
-        cylinder(headConeHeight, headConeRadius, headRadius, $fn=$fnBody);
+            translate([0,0, - insertionTolerance])
+            cylinder(headBaseHeight + insertionTolerance*2, headRadius - wallThickness, headRadius - wallThickness, $fn=$fnBody);
+        }
+
+        difference() {
+            cylinder(headConeHeight, headConeRadius, headRadius, $fn=$fnBody);
+            translate([0,0, - insertionTolerance])
+            cylinder(headBaseHeight + insertionTolerance*2, headConeRadius - wallThickness, headRadius - wallThickness, $fn=$fnBody);
+        }
+    }
+}
+
+module headDetail()
+{
+    difference()
+    {
+        head();
+
+        // horizontal slice at the decoration part so that we can print the inside cleanly
+        translate([
+            0, 0,
+            headOffset + headConeHeight + headBaseHeight * 0.9])
+        cube([headRadius*2, headRadius*2, insertionTolerance], center=true);
+
+        for (ring = [0.1,0.9])
+        translate([
+            0, 0,
+            headOffset + headConeHeight + headBaseHeight * ring])
+        difference() {
+            cylinder(headBaseHeight * 0.1, headRadius+5, headRadius+5);
+            cylinder(headBaseHeight * 0.2, headRadius - wallThickness / 10, headRadius - wallThickness / 10);
+        }
     }
 }
 

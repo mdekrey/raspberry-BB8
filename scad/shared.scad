@@ -284,24 +284,13 @@ module tFrameTriangle() {
         }
         // end outer-ring holes
 
-        // visible bolt-hole cover
-        rotate(45, [0, 0, 1])
-        rotate(90-35, [0, 1, 0])
-        rotate(35/2, [0, 1, 0])
-        translate([0, 0, radius])
-        outerWallBoltHole();
-
-        rotate(45, [1,0,0])
-        rotate(45, [0, 0, 1])
-        rotate(90-35/2, [0, 1, 0])
-        translate([0, 0, radius])
-        outerWallBoltHole();
-
-        rotate(-45, [0,1,0])
-        rotate(45, [0, 0, 1])
-        rotate(90-35/2, [0, 1, 0])
-        translate([0, 0, radius])
-        outerWallBoltHole();
+        // visible bolt-hole covers (bottom, left, right)
+        for (rotationAxis = [[0,0,0],[1,0,0],[0,-1,0]])
+            rotate(45, rotationAxis)
+            rotate(45, [0, 0, 1])
+            rotate(90-35/2, [0, 1, 0])
+            translate([0, 0, radius])
+            outerWallBoltHole();
 
     }
 }

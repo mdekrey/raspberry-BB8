@@ -642,15 +642,21 @@ module head()
         intersection() {
             difference(){
                 sphere(headRadius, $fn=$fnBody);
-                translate([0,0, -wallThickness])
-                // make the head hollow; keep it a cone so that it doesn't need supports
-                cylinder(headRadius, headRadius, 0, $fn=$fnBody);
+
+                // make the head hollow.
+                // start with a cylinder at the base so the bolts can be added
+                translate([0,0,-insertionTolerance])
+                cylinder(camlockBoltLength * 0.6 + insertionTolerance*2, headRadius-wallThickness, headRadius-wallThickness, $fn=$fnBody);
+                // make the top half of the head hollow; keep it a cone so that it doesn't need supports
+                translate([0,0,-insertionTolerance + camlockBoltLength * 0.6])
+                cylinder(headRadius-camlockBoltLength * 0.6-wallThickness, headRadius-wallThickness, 0, $fn=$fnBody);
             }
             // Just the top half
             translate([-headRadius, -headRadius, 0])
             cube([headRadius*2, headRadius*2, headRadius]);
         }
 
+        // The base has a portion that is purely a cylinder
         translate([0,0, headConeHeight])
         difference() {
             cylinder(headBaseHeight, headRadius, headRadius, $fn=$fnBody);
@@ -659,10 +665,15 @@ module head()
             cylinder(headBaseHeight + insertionTolerance*2, headRadius - wallThickness, headRadius - wallThickness, $fn=$fnBody);
         }
 
+        // ... followed by a cone that comes down to the base itself
         difference() {
             cylinder(headConeHeight, headConeRadius, headRadius, $fn=$fnBody);
+
+            // And hollow out the cone, but end in a cylinder so we don't have a sharp edge
             translate([0,0, - insertionTolerance])
             cylinder(headBaseHeight + insertionTolerance*2, headConeRadius - wallThickness, headRadius - wallThickness, $fn=$fnBody);
+            translate([0,0, - insertionTolerance])
+            cylinder(headBaseHeight + insertionTolerance*2, headConeRadius - wallThickness * 0.1, headConeRadius - wallThickness * 0.1, $fn=$fnBody);
         }
     }
 }
@@ -673,10 +684,10 @@ module headDetail()
     {
         head();
 
-        // horizontal slice at the decoration part so that we can print the inside cleanly
+        // horizontal slice at the decoration part so that we can print the inside cleanly and keep all overhangs inside, too
         translate([
             0, 0,
-            headOffset + headConeHeight + headBaseHeight * 0.9])
+            headOffset + headConeHeight + headBaseHeight])
         cube([headRadius*2, headRadius*2, insertionTolerance], center=true);
 
         for (ring = [0.1,0.9])
@@ -686,6 +697,18 @@ module headDetail()
         difference() {
             cylinder(headBaseHeight * 0.1, headRadius+5, headRadius+5);
             cylinder(headBaseHeight * 0.2, headRadius - wallThickness / 10, headRadius - wallThickness / 10);
+        }
+
+        for (outerBolt = [0 : 45 : 360]) {
+            rotate([0,0,outerBolt])
+            translate([0, headRadius - wallThickness, headOffset + headConeHeight + headBaseHeight])
+            rotate([90,0,0])
+            camLockSlot(boltLength=camlockBoltLength);
+
+            rotate([0,0,outerBolt])
+            translate([0, headRadius - wallThickness, headOffset + headConeHeight + headBaseHeight])
+            rotate([90,180,0])
+            camLockSlot(boltLength=camlockBoltLength);
         }
     }
 }

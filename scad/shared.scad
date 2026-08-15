@@ -51,17 +51,11 @@ module panelRing() {
                 translate([0,0,radius + cos(panelDegrees) * radius])
                 cube([(panelRadius - insertionTolerance + panelRingOuterOverlap) * 2, (panelRadius - insertionTolerance + panelRingOuterOverlap) * 2, radius * 2], center=true);
             }
-            intersection() {
+            difference() {
                 cylinder(r=panelRingInnerRadius, h=radius * 2);
 
-                difference() {
-                    cube([radius*2,radius*2,radius*2], center=true);
-
-                    rotate([0,0,-30+panelRotateLockOffset+rotateLockDegrees])
-                    linear_extrude(height=radius)
-                    import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
-                }
-
+                rotate([0,0,panelLockBoltDegrees+panelRotateLockOffset+rotateLockDegrees])
+                panelX();
             }
 
             intersection() {
@@ -76,9 +70,19 @@ module panelRing() {
 panelAdditionalWallThickness = 0; // cos(panelDegrees) * maxLip;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;
 panelLayerWall = radius - (radius - panelInnerWall) * 0.6;
+
+module panelX(offset = 0) {
+    for (arm=[0:90:359]) {
+        rotate([0,0,arm+45])
+        linear_extrude(height=radius)
+        translate([-83, 83, 0])
+        offset(r=offset)
+        import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
+    }
+}
+
 module panel() {
     difference() {
-        rotate([0,0,-15 - rotateLockDegrees - panelRotateLockOffset])
         intersection() {
             bodySphere(additionalWallThickness = panelAdditionalWallThickness);
 
@@ -90,10 +94,7 @@ module panel() {
                         cube([radius*2,radius*2,radius*2], center=true);
                         sphere(radius - wallThickness/2 - insertionTolerance, $fn=$fn);
 
-                        rotate([0,0,-30+panelRotateLockOffset+rotateLockDegrees])
-                        linear_extrude(height=radius)
-                        offset(r=insertionTolerance)
-                        import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
+                        panelX(offset=insertionTolerance);
                     }
                 }
 

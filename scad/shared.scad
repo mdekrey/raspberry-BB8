@@ -383,22 +383,8 @@ module panelRingQuarter(split = false) {
     endHoleOffset = 180-panelDegrees + panelRingDegrees *0.625;
     difference() {
         intersection() {
+            translate([insertionTolerance*0.5,insertionTolerance*0.5,0])
             cube([radius, radius, radius]);
-
-            difference() {
-                cube([radius*2, radius*2, radius*2], center=true);
-
-                rotate([0,0,0])
-                cube([insertionTolerance, radius*2, radius*2], center=true);
-
-                rotate([0,0,-90])
-                cube([insertionTolerance, radius*2, radius*2], center=true);
-
-                if (split) {
-                    rotate([0,0,-45])
-                    cube([insertionTolerance, radius*2, radius*2], center=true);
-                }
-            }
 
             panelRing();
         }

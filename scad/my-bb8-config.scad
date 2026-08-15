@@ -5,7 +5,7 @@ $fnDetail = $preview ? 15 : 60;
 smallPrintBed = false;
 
 millisPerInch = 25.4;
-radius = 253; // TODO: rimstar.org has it at 254, but this is what I started at, so I'm keeping it for the moment.
+radius = 253; // rimstar.org has it at diameter of both 506 and 508 in different spots, but this is what I started at, so I'm keeping it for the moment.
 wallThickness = 0.5 * millisPerInch;
 camlockNutRadius = 2.6;
 camlockNutThickness = wallThickness * 0.6;

@@ -33,6 +33,12 @@ ringThickness = cos(panelRingInnerActualDegrees) * radius - cos(panelRingInnerIn
 panelDesignDepth = radius - cos(asin((panelRingInnerRadius * 0.92) / radius)) * radius + insertionTolerance;
 panelDesignRadius = wallThickness - 0.2 * millisPerInch;
 
+headRadius = radius * 295/506;
+headBaseHeight = 31 * headRadius / 147.5;
+headConeHeight = 20 * headRadius / 147.5;
+headConeRadius = 111.5 * headRadius / 147.5;
+headOffset = cos(asin(headConeRadius / radius)) * radius;
+
 module bodySphere(additionalWallThickness = 0) {
     difference() {
         sphere(radius, $fn=$fnBody);
@@ -625,6 +631,25 @@ module panelCutout(panel) {
                 }
             }
         }
+    }
+}
+
+module head()
+{
+    translate([0,0, headOffset])
+    {
+        translate([0,0, headBaseHeight + headConeHeight])
+        intersection() {
+            sphere(headRadius, $fn=$fnBody);
+
+            translate([-headRadius, -headRadius, 0])
+            cube([headRadius*2, headRadius*2, headRadius]);
+        }
+
+        translate([0,0, headConeHeight])
+        cylinder(headBaseHeight, headRadius, headRadius, $fn=$fnBody);
+
+        cylinder(headConeHeight, headConeRadius, headRadius, $fn=$fnBody);
     }
 }
 

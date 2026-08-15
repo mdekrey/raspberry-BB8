@@ -54,6 +54,7 @@ module panelRing() {
             difference() {
                 cylinder(r=panelRingInnerRadius, h=radius * 2);
 
+                linear_extrude(height=radius)
                 panelX();
             }
 
@@ -73,7 +74,6 @@ panelLayerWall = radius - (radius - panelInnerWall) * 0.6;
 module panelX(offset = 0) {
     for (arm=[0:90:359]) {
         rotate([0,0,arm+45])
-        linear_extrude(height=radius)
         translate([-83, 83, 0])
         offset(r=offset)
         import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
@@ -93,6 +93,7 @@ module panel() {
                         cube([radius*2,radius*2,radius*2], center=true);
                         sphere(radius - wallThickness/2 - insertionTolerance, $fn=$fn);
 
+                        linear_extrude(height=radius)
                         panelX(offset=insertionTolerance);
                     }
                 }
@@ -167,8 +168,8 @@ module panelDesign(panelNumber) {
             resize(newsize = [panelRingInnerRadius*2,panelRingInnerRadius*2])
             import(str("tool-panel-",panelNumber,".svg"), center=true, dpi=200);
 
-            offset(r=insertionTolerance)
-            import("panel-x.svg", center=true, dpi=2611.8439045872/panelRingInnerRadius);
+            rotate([0,0,45])
+            panelX(insertionTolerance);
         }
 
         translate([panelRingInnerRadius*2 / 200, -panelRingInnerRadius*2 / 200])

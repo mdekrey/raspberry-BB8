@@ -1,6 +1,6 @@
-$fnBody = 360 / 2; // use 360 / 5 for working
-$fn = 360/5; // use 360/10 for working
-$fnDetail = 60; // use 15 for working
+$fnBody = 360 / ($preview ? 5 : 2);
+$fn = 360/ ($preview ? 10 : 5);
+$fnDetail = $preview ? 15 : 60;
 millisPerInch = 25.4;
 radius = 253;
 wallThickness = 0.5 * millisPerInch;

@@ -54,7 +54,6 @@ module panelRing() {
             difference() {
                 cylinder(r=panelRingInnerRadius, h=radius * 2);
 
-                rotate([0,0,panelLockBoltDegrees+panelRotateLockOffset+rotateLockDegrees])
                 panelX();
             }
 
@@ -382,38 +381,43 @@ module tFrameThird() {
 module panelRingQuarter(split = false) {
     panelRingCenterDegrees = (panelDegrees - panelRingDegrees / 2);
     endHoleOffset = 180-panelDegrees + panelRingDegrees *0.625;
+    quarterRingRotation = -(panelLockBoltDegrees+panelRotateLockOffset+rotateLockDegrees);
     difference() {
         intersection() {
+            rotate([0,0,quarterRingRotation])
             translate([insertionTolerance*0.5,insertionTolerance*0.5,0])
             cube([radius, radius, radius]);
 
             panelRing();
         }
 
-        // end holes
-        for (end = [-1 : (split ? 1 : 2) : 1]) {
-            rotate([endHoleOffset,0,-45 + 45 * end])
-            translate([0,0,-(radius - camlockNutThickness)])
-            rotate([0,90,0]) // bolt rotation
-            cylinder(r=pinRadius + insertionTolerance / 2, h=pinLength + insertionTolerance, center=true);
-        }
-
-        // rotate lock holes
-        for(loop = [panelRotateLockOffset : panelLockBoltDegrees : 90]) {
-            // The hole in line with the panel arm does not exist to ensure proper alignment of the pieces
-            if (loop != panelRotateLockOffset + panelLockBoltDegrees) {
-                rotate([0,0,loop])
-                translate([0,0, radius * cos(panelDegrees)])
-                rotateLockSlot(boltLength=camlockBoltLength, radius = panelRadius, angle = rotateLockDegrees, downwardAngle = panelDegrees);
+        rotate([0,0,quarterRingRotation])
+        {
+            // end holes
+            for (end = [-1 : (split ? 1 : 2) : 1]) {
+                rotate([endHoleOffset,0,-45 + 45 * end])
+                translate([0,0,-(radius - camlockNutThickness)])
+                rotate([0,90,0]) // bolt rotation
+                cylinder(r=pinRadius + insertionTolerance / 2, h=pinLength + insertionTolerance, center=true);
             }
-        }
 
-        // visible bolt
-        // TODO: the arm and bolt should line up with the lock hole, regardless of the number of bolts
-        rotate([0, panelArmBoltDegrees, 15+panelRotateLockOffset+rotateLockDegrees])
-        translate([0, 0, radius])
-        rotate([0, 0, 0])
-        visibleBoltHole();
+            // rotate lock holes
+            for(loop = [panelRotateLockOffset : panelLockBoltDegrees : 90]) {
+                // The hole in line with the panel arm does not exist to ensure proper alignment of the pieces
+                if (loop != panelRotateLockOffset + panelLockBoltDegrees) {
+                    rotate([0,0,loop])
+                    translate([0,0, radius * cos(panelDegrees)])
+                    rotateLockSlot(boltLength=camlockBoltLength, radius = panelRadius, angle = rotateLockDegrees, downwardAngle = panelDegrees);
+                }
+            }
+
+            // visible bolt
+            // TODO: the arm and bolt should line up with the lock hole, regardless of the number of bolts
+            rotate([0, panelArmBoltDegrees, 15+panelRotateLockOffset+rotateLockDegrees])
+            translate([0, 0, radius])
+            rotate([0, 0, 0])
+            visibleBoltHole();
+        }
     }
 }
 

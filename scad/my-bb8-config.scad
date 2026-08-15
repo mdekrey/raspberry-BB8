@@ -1,6 +1,9 @@
 $fnBody = 360 / ($preview ? 5 : 2);
 $fn = 360/ ($preview ? 10 : 5);
 $fnDetail = $preview ? 15 : 60;
+
+smallPrintBed = false;
+
 millisPerInch = 25.4;
 radius = 253;
 wallThickness = 0.5 * millisPerInch;

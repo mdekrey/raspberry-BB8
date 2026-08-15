@@ -533,15 +533,17 @@ module outerWallBoltHole() {
 }
 
 module toolPanel(panel) {
-    panelMain()
-    union()
-    {
-        panelDesignEmboss(panel);
-
-        panelCutout(panel);
+    if (panel == 0)
+        panelMain();
+    else {
+        panelMain()
+        union()
+        {
+            panelDesignEmboss(panel);
+            panelCutout(panel);
+        }
+        panelDesignCurved(panel);
     }
-
-    panelDesignCurved(panel);
 }
 
 module panelCutout(panel) {

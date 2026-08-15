@@ -21,8 +21,8 @@ if (camlockBoltRadius * 2 + 2 > camlockNutThickness)
 
 panelLockBoltDegrees = 90/ringLocksPerQuadrant;
 panelRadiusOffset = radius * cos(panelDegrees);
-panelRotateLockOffset = 5;
-rotateLockDegrees = 6;
+rotateLockDegrees = panelLockBoltDegrees * 0.6; // The number of degrees to rotate the lock
+panelRotateLockOffset = (panelLockBoltDegrees - rotateLockDegrees) / 2; // The number of degrees offset from the start position for the initial lock
 
 panelRingInnerActualDegrees = asin((panelRingInnerRadius - insertionTolerance) / radius);
 panelRingInnerInternalDegrees = asin((panelRingInnerRadius + panelRingInnerOverlap - insertionTolerance)
@@ -398,11 +398,13 @@ module panelRingQuarter(split = false) {
         }
 
         // rotate lock holes
-        // TODO: the hole in line with the bolt should not exist
         for(loop = [panelRotateLockOffset : panelLockBoltDegrees : 90]) {
-            rotate([0,0,loop])
-            translate([0,0, radius * cos(panelDegrees)])
-            rotateLockSlot(boltLength=camlockBoltLength, radius = panelRadius, angle = rotateLockDegrees, downwardAngle = panelDegrees);
+            // The hole in line with the panel arm does not exist to ensure proper alignment of the pieces
+            if (loop != panelRotateLockOffset + panelLockBoltDegrees) {
+                rotate([0,0,loop])
+                translate([0,0, radius * cos(panelDegrees)])
+                rotateLockSlot(boltLength=camlockBoltLength, radius = panelRadius, angle = rotateLockDegrees, downwardAngle = panelDegrees);
+            }
         }
 
         // visible bolt

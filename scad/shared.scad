@@ -19,6 +19,7 @@ panelArmBoltDegrees = panelDegrees * 0.52;
 if (camlockBoltRadius * 2 + 2 > camlockNutThickness)
     warn("Camlock Bolt/Nut sizes invalid");
 
+panelLockBoltDegrees = 90/ringLocksPerQuadrant;
 panelRadiusOffset = radius * cos(panelDegrees);
 panelRotateLockOffset = 5;
 rotateLockDegrees = 6;
@@ -221,6 +222,79 @@ module tFrame() {
     }
 }
 
+module tFrameTriangle() {
+    rotationDifference = 30.5;
+    difference() {
+        intersection() {
+            polyhedron(
+            points=[ [0,0,2*radius],[2*radius,0,0],[0,2*radius,0], // the three points at base
+                    [0,0,0]  ],                                 // the apex point
+            faces=[ [0,1,3],[1,2,3],
+                        [2,0,3],[2,1,0] ]
+            );
+
+            tFrame();
+        }
+
+        // bottom holes
+        rotate([0,-90,40])
+        translate([0,0,-(radius - wallThickness - 0)])
+        rotate([0,0,90])
+        camLockSlot(boltLength=camlockBoltLength);
+
+        rotate([0,-90,50])
+        translate([0,0,-(radius - wallThickness - 0)])
+        rotate([0,0,90])
+        camLockSlot(boltLength=camlockBoltLength);
+
+        // outer-ring holes
+        // TODO: change this first param to offset with panelLockBoltDegrees*0.5
+        for (position = [panelLockBoltDegrees:panelLockBoltDegrees:89]){
+            rotate([0,-90,0])
+            rotate([0,0,-position])
+            rotate([panelDegrees,0,0])
+            translate([0,0,-(radius - wallThickness - 0)])
+            rotate([0,0,180]) // bolt rotation
+            camLockSlot(boltLength=camlockBoltLength);
+
+            rotate([90,0,0])
+            rotate([0,0,-position])
+            rotate([panelDegrees,0,0])
+            translate([0,0,-(radius - wallThickness - 0)])
+            rotate([0,0,180]) // bolt rotation
+            camLockSlot(boltLength=camlockBoltLength);
+
+            rotate([180,0,90])
+            rotate([0,0,-position])
+            rotate([panelDegrees,0,0])
+            translate([0,0,-(radius - wallThickness - 0)])
+            rotate([0,0,180]) // bolt rotation
+            camLockSlot(boltLength=camlockBoltLength);
+        }
+        // end outer-ring holes
+
+        // visible bolt-hole cover
+        rotate(45, [0, 0, 1])
+        rotate(90-35, [0, 1, 0])
+        rotate(35/2, [0, 1, 0])
+        translate([0, 0, radius])
+        outerWallBoltHole();
+
+        rotate(45, [1,0,0])
+        rotate(45, [0, 0, 1])
+        rotate(90-35/2, [0, 1, 0])
+        translate([0, 0, radius])
+        outerWallBoltHole();
+
+        rotate(-45, [0,1,0])
+        rotate(45, [0, 0, 1])
+        rotate(90-35/2, [0, 1, 0])
+        translate([0, 0, radius])
+        outerWallBoltHole();
+
+    }
+}
+
 module tFrameThird() {
     rotationDifference = 30.5;
     difference() {
@@ -274,17 +348,20 @@ module tFrameThird() {
         }
 
         // outer-ring holes
-        for (position = [15:15:31]){
-            rotate([position,0,0])
-            rotate([0,-90,panelDegrees])
+        // TODO: change this first param to offset with panelLockBoltDegrees*0.5
+        for (position = [panelLockBoltDegrees:panelLockBoltDegrees:44]){
+            rotate([0,-90,0])
+            rotate([0,0,-position])
+            rotate([panelDegrees,0,0])
             translate([0,0,-(radius - wallThickness - 0)])
             rotate([0,0,180]) // bolt rotation
             camLockSlot(boltLength=camlockBoltLength);
 
-            rotate([0,-position,0])
-            rotate([90,0,-panelDegrees])
+            rotate([90,0,0])
+            rotate([0,0,-position -45])
+            rotate([panelDegrees,0,0])
             translate([0,0,-(radius - wallThickness - 0)])
-            rotate([0,0,90]) // bolt rotation
+            rotate([0,0,180]) // bolt rotation
             camLockSlot(boltLength=camlockBoltLength);
         }
         // end outer-ring holes
@@ -335,13 +412,15 @@ module panelRingQuarter(split = false) {
         }
 
         // rotate lock holes
-        for(loop = [panelRotateLockOffset : 15 : 90]) {
+        // TODO: the hole in line with the bolt should not exist
+        for(loop = [panelRotateLockOffset : panelLockBoltDegrees : 90]) {
             rotate([0,0,loop])
             translate([0,0, radius * cos(panelDegrees)])
             rotateLockSlot(boltLength=camlockBoltLength, radius = panelRadius, angle = rotateLockDegrees, downwardAngle = panelDegrees);
         }
 
         // visible bolt
+        // TODO: the arm and bolt should line up with the lock hole, regardless of the number of bolts
         rotate([0, panelArmBoltDegrees, 15+panelRotateLockOffset+rotateLockDegrees])
         translate([0, 0, radius])
         rotate([0, 0, 0])
@@ -443,6 +522,21 @@ module visibleBoltHole() {
 
     translate([0, 0, -wallThickness * 2])
     cylinder(r = visibleBoltHole, h=wallThickness * 2, $fn=$fn);
+}
+
+module outerWallBoltHole() {
+    // front inset
+    translate([0, 0, -visibleBoltBezelDepth])
+    cylinder(r1=visibleBoltOuterRadius - visibleBoltBezel * 2, r2=visibleBoltOuterRadius, h=visibleBoltBezelDepth * 2, $fn=$fnDetail);
+
+    translate([0, 0, -wallThickness * 2])
+    cylinder(r = visibleBoltHole, h=wallThickness * 2, $fn=$fn);
+
+    // back inset
+    translate([0, 0, - wallThickness])
+    rotate([180, 0, 0])
+    translate([0, 0, -visibleBoltBezelDepth])
+    cylinder(r1=visibleBoltOuterRadius - visibleBoltBezel * 2, r2=visibleBoltOuterRadius, h=visibleBoltBezelDepth * 2, $fn=$fnDetail);
 }
 
 module toolPanel(panel) {

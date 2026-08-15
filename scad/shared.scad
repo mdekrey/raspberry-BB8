@@ -247,41 +247,24 @@ module tFrameTriangle() {
             tFrame();
         }
 
-        // bottom holes
-        rotate([0,-90,40])
-        translate([0,0,-(radius - wallThickness - 0)])
-        rotate([0,0,90])
-        camLockSlot(boltLength=camlockBoltLength);
+        // interlocking holes for other frame triangles
+        // when facing from the outside, bottom, left, right
+        for (rotationAxis = [[0,0,0],[1,0,0],[0,-1,0]])
+            rotate(90, rotationAxis)
+            for (interlock = [-5, 5])
+                rotate([0,-90,45 + interlock])
+                translate([0,0,-(radius - wallThickness - 0)])
+                rotate([0,0,90])
+                camLockSlot(boltLength=camlockBoltLength);
 
-        rotate([0,-90,50])
-        translate([0,0,-(radius - wallThickness - 0)])
-        rotate([0,0,90])
-        camLockSlot(boltLength=camlockBoltLength);
-
-        // outer-ring holes
-        // TODO: change this first param to offset with panelLockBoltDegrees*0.5
-        for (position = [panelLockBoltDegrees:panelLockBoltDegrees:89]){
-            rotate([0,-90,0])
-            rotate([0,0,-position])
-            rotate([panelDegrees,0,0])
-            translate([0,0,-(radius - wallThickness - 0)])
-            rotate([0,0,180]) // bolt rotation
-            camLockSlot(boltLength=camlockBoltLength);
-
-            rotate([90,0,0])
-            rotate([0,0,-position])
-            rotate([panelDegrees,0,0])
-            translate([0,0,-(radius - wallThickness - 0)])
-            rotate([0,0,180]) // bolt rotation
-            camLockSlot(boltLength=camlockBoltLength);
-
-            rotate([180,0,90])
-            rotate([0,0,-position])
-            rotate([panelDegrees,0,0])
-            translate([0,0,-(radius - wallThickness - 0)])
-            rotate([0,0,180]) // bolt rotation
-            camLockSlot(boltLength=camlockBoltLength);
-        }
+        // outer-ring holes - when facing from the outside, left, right, top
+        for (side = [[0,-90,0], [90,0,0], [180,0,90]])
+            for (position = [panelLockBoltDegrees:panelLockBoltDegrees:89])
+                rotate(side)
+                rotate([0,0,-position])
+                rotate([panelDegrees,0,0])
+                translate([0,0,-(radius - wallThickness - 0)])
+                camLockSlot(boltLength=camlockBoltLength);
         // end outer-ring holes
 
         // visible bolt-hole covers (bottom, left, right)
@@ -503,6 +486,9 @@ module camLockSlot(boltLength) {
         translate([0,0,-camlockNutMaxDepth])
         cylinder(r1=camlockNutRadius, r2=camlockNutRadius, h=camlockNutThickness + camlockNutMaxDepth, $fn=$fn);
 
+        translate([0,-boltLength,-camlockNutMaxDepth])
+        cylinder(r1=camlockNutRadius, r2=camlockNutRadius, h=camlockNutThickness + camlockNutMaxDepth, $fn=$fn);
+
         rotate([90,0,0])
         translate([0, camlockNutThickness * 0.5, 0])
         cylinder(r1=(camlockBoltRadius + insertionTolerance / 2), r2=(camlockBoltRadius + insertionTolerance / 2), h=boltLength);
@@ -692,11 +678,6 @@ module headDetail()
             rotate([0,0,outerBolt])
             translate([0, headRadius - wallThickness, headOffset + headConeHeight + headBaseHeight])
             rotate([90,0,0])
-            camLockSlot(boltLength=camlockBoltLength);
-
-            rotate([0,0,outerBolt])
-            translate([0, headRadius - wallThickness, headOffset + headConeHeight + headBaseHeight])
-            rotate([90,180,0])
             camLockSlot(boltLength=camlockBoltLength);
         }
     }

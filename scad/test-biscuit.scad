@@ -1,7 +1,7 @@
 include <my-bb8-config.scad>;
 
 blockSize = 20;
-wallThickness=8;
+wallThickness=5;
 
 translate([0,0,biscuitThickness / 2])
 biscuit();

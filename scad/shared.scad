@@ -38,6 +38,8 @@ headBaseHeight = 20 * headRadius / 147.5;
 headConeHeight = 20 * headRadius / 147.5;
 headConeRadius = 111.5 * headRadius / 147.5;
 headOffset = cos(asin(headConeRadius / radius)) * radius;
+headInnerRadius = (headConeRadius * 3 + headRadius) / 4 - wallThickness;
+headInnerHeight = headRadius - wallThickness;
 
 module bodySphere(additionalWallThickness = 0) {
     difference() {
@@ -611,8 +613,6 @@ module panelCutout(panel) {
 
 module head()
 {
-    headInnerRadius = headConeRadius - wallThickness;
-
     translate([0,0, headOffset])
     {
         translate([0,0, headBaseHeight + headConeHeight])
@@ -623,10 +623,10 @@ module head()
                 // make the head hollow.
                 // start with a cylinder at the base so the bolts can be added
                 translate([0,0,-insertionTolerance])
-                cylinder(camlockBoltLength * 0.6 + insertionTolerance*2, r=headInnerRadius, $fn=$fnBody);
+                cylinder(camlockBoltLength * 0.6, r=headInnerRadius, $fn=$fnBody);
                 // make the top half of the head hollow; keep it a cone so that it doesn't need supports
-                translate([0,0,-insertionTolerance + camlockBoltLength * 0.6])
-                cylinder(headRadius-camlockBoltLength * 0.6-wallThickness, r1=headInnerRadius, r2=0, $fn=$fnBody);
+                translate([0,0,-insertionTolerance * 2 + camlockBoltLength * 0.6])
+                cylinder(headInnerHeight + insertionTolerance - camlockBoltLength * 0.6, r1=headInnerRadius+insertionTolerance, r2=0, $fn=$fnBody);
             }
             // Just the top half
             translate([-headRadius, -headRadius, 0])
@@ -679,9 +679,15 @@ module headDetail()
             }
         }
 
-        for (outerBolt = [0 : 45 : 360]) {
+        count = 3;
+        for (outerBolt = [0 : (360/count) : 360]) {
             rotate([0,0,outerBolt])
-            translate([0, headRadius - wallThickness, headOffset + headConeHeight + headBaseHeight])
+            translate([0, headInnerRadius + camlockNutMaxDepth / 2, headOffset + headConeHeight + headBaseHeight])
+            rotate([90,0,0])
+            camLockSlot(boltLength=camlockBoltLength);
+
+            rotate([0,0,outerBolt + (360/(count * 2))])
+            translate([0, headInnerRadius + camlockNutMaxDepth / 4, headOffset + headConeHeight])
             rotate([90,0,0])
             camLockSlot(boltLength=camlockBoltLength);
         }

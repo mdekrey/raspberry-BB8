@@ -6,3 +6,4 @@ obj
 *.lock.json
 
 *.stl
+*.3mf

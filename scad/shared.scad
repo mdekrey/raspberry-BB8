@@ -479,7 +479,7 @@ module rotateLockSlot(boltLength, radius, angle, downwardAngle) {
     }
 }
 
-module camLockSlot(boltLength) {
+module camLockSlot(boltLength=camlockBoltLength) {
     translate([0,-boltLength/2,0])
     rotate([180, 0, 0])
     union() {
@@ -492,6 +492,27 @@ module camLockSlot(boltLength) {
         rotate([90,0,0])
         translate([0, camlockNutThickness * 0.5, 0])
         cylinder(r1=(camlockBoltRadius + insertionTolerance / 2), r2=(camlockBoltRadius + insertionTolerance / 2), h=boltLength);
+    }
+}
+
+module biscuitSlot() {
+    translate([0,0,-biscuitSlotDepth])
+    cube([
+        biscuitWidth + insertionTolerance,
+        biscuitLength + insertionTolerance,
+        biscuitThickness + insertionTolerance
+    ], center = true);
+}
+module biscuit() {
+    hull() {
+        for(x = [-1,1])
+        for(y = [-1,1])
+            translate([
+                x * (biscuitWidth - biscuitRadius)/2,
+                y * (biscuitLength - biscuitRadius) / 2,
+                0
+            ])
+            cylinder(biscuitThickness, r=biscuitRadius, center=true);
     }
 }
 

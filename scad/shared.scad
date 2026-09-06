@@ -611,6 +611,8 @@ module panelCutout(panel) {
 
 module head()
 {
+    headInnerRadius = headConeRadius - wallThickness;
+
     translate([0,0, headOffset])
     {
         translate([0,0, headBaseHeight + headConeHeight])
@@ -621,10 +623,10 @@ module head()
                 // make the head hollow.
                 // start with a cylinder at the base so the bolts can be added
                 translate([0,0,-insertionTolerance])
-                cylinder(camlockBoltLength * 0.6 + insertionTolerance*2, headRadius-wallThickness, headRadius-wallThickness, $fn=$fnBody);
+                cylinder(camlockBoltLength * 0.6 + insertionTolerance*2, r=headInnerRadius, $fn=$fnBody);
                 // make the top half of the head hollow; keep it a cone so that it doesn't need supports
                 translate([0,0,-insertionTolerance + camlockBoltLength * 0.6])
-                cylinder(headRadius-camlockBoltLength * 0.6-wallThickness, headRadius-wallThickness, 0, $fn=$fnBody);
+                cylinder(headRadius-camlockBoltLength * 0.6-wallThickness, r1=headInnerRadius, r2=0, $fn=$fnBody);
             }
             // Just the top half
             translate([-headRadius, -headRadius, 0])
@@ -632,12 +634,13 @@ module head()
         }
 
         // The base has a portion that is purely a cylinder
+        color("white")
         translate([0,0, headConeHeight])
         difference() {
             cylinder(headBaseHeight, headRadius, headRadius, $fn=$fnBody);
 
             translate([0,0, - insertionTolerance])
-            cylinder(headBaseHeight + insertionTolerance*2, headRadius - wallThickness, headRadius - wallThickness, $fn=$fnBody);
+            cylinder(headBaseHeight + insertionTolerance*2, r=headInnerRadius, $fn=$fnBody);
         }
 
         // ... followed by a cone that comes down to the base itself
@@ -645,10 +648,10 @@ module head()
             cylinder(headConeHeight, headConeRadius, headRadius, $fn=$fnBody);
 
             // And hollow out the cone, but end in a cylinder so we don't have a sharp edge
+            translate([0,0, headBaseHeight*0.2 - insertionTolerance])
+            cylinder(headBaseHeight*0.8 + insertionTolerance*2, headConeRadius - wallThickness, headInnerRadius, $fn=$fnBody);
             translate([0,0, - insertionTolerance])
-            cylinder(headBaseHeight + insertionTolerance*2, headConeRadius - wallThickness, headRadius - wallThickness, $fn=$fnBody);
-            translate([0,0, - insertionTolerance])
-            cylinder(headBaseHeight + insertionTolerance*2, headConeRadius - wallThickness * 0.1, headConeRadius - wallThickness * 0.1, $fn=$fnBody);
+            cylinder(headBaseHeight + insertionTolerance*2, r=headConeRadius - wallThickness, $fn=$fnBody);
         }
     }
 }
@@ -659,19 +662,21 @@ module headDetail()
     {
         head();
 
-        // horizontal slice at the decoration part so that we can print the inside cleanly and keep all overhangs inside, too
-        translate([
-            0, 0,
-            headOffset + headConeHeight + headBaseHeight])
-        cube([headRadius*2, headRadius*2, insertionTolerance], center=true);
-
-        for (ring = [0.1,0.9])
+        color("grey")
+        for (ring = [0.15,0.95])
         translate([
             0, 0,
             headOffset + headConeHeight + headBaseHeight * ring])
-        difference() {
-            cylinder(headBaseHeight * 0.1, headRadius+5, headRadius+5);
-            cylinder(headBaseHeight * 0.2, headRadius - wallThickness / 10, headRadius - wallThickness / 10);
+        {
+            // horizontal slice at the decorations so that we can print the inside cleanly
+            for (step = [0.05, -0.05])
+                translate([0, 0, headBaseHeight * step])
+                cube([headRadius*2, headRadius*2, insertionTolerance], center=true);
+
+            difference() {
+                cylinder(headBaseHeight * 0.1, headRadius+5, headRadius+5, center=true);
+                cylinder(headBaseHeight * 0.2, headRadius - wallThickness / 10, headRadius - wallThickness / 10, center=true);
+            }
         }
 
         for (outerBolt = [0 : 45 : 360]) {

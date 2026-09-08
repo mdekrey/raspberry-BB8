@@ -609,6 +609,7 @@ module head()
 
 module headShell()
 {
+    render()
     {
         translate([0,0, headBaseHeight + headConeHeight])
         intersection() {
@@ -695,9 +696,47 @@ module headEtchings()
             translate([
                 0, 0,
                 headConeHeight + headBaseHeight * ring])
-            translate([0, 0, headBaseHeight * step])
             cube([headRadius*2, headRadius*2, headBaseHeight * 0.1], center=true);
         }
+    }
+}
+
+module headHorizontalSlice(y=0, deg=0, isUp=false)
+{
+    y = (deg == 0 ? y : sin(deg) * headRadius)
+        + headConeHeight + headBaseHeight;
+    outerX = cos(deg) * headRadius;
+    innerX = cos(asin(sin(deg) * headRadius / headInnerRadius)) * headInnerRadius;
+    x = (outerX*2 + innerX*1) / 3;
+    echo(y=y, x=x);
+    translate([0,0,y])
+    {
+        difference() {
+            cube([headRadius*3, headRadius*3, insertionTolerance], center=true);
+            cylinder(y * 2, r=x - insertionTolerance, center=true);
+        }
+
+        translate([0,0, (isUp?1:-1) * (headCutHeight / 2)])
+        difference()
+        {
+            cylinder(insertionTolerance * 2 + headCutHeight, r=x, center=true);
+            cylinder(insertionTolerance * 4 + headCutHeight, r=x - insertionTolerance, center=true);
+        }
+
+        translate([0,0, (isUp?1:-1) * (headCutHeight + insertionTolerance)])
+        cylinder(insertionTolerance, r=x);
+    }
+}
+
+module headCuts()
+{
+    translate([0,0, headOffset])
+    {
+        headHorizontalSlice(deg = 55);
+        headHorizontalSlice(deg = 90-22);
+
+        headHorizontalSlice(y = -headBaseHeight * 0.0, isUp=true);
+        headHorizontalSlice(y = -headBaseHeight * 0.9);
     }
 }
 
@@ -708,6 +747,7 @@ module headDetail()
         head();
 
         headEtchings();
+        headCuts();
 
         *
         headDecorations();

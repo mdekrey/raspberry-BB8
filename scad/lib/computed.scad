@@ -42,6 +42,7 @@ headOffset = cos(asin(headConeRadius / radius)) * radius;
 headInnerRadius = headRadius - headWallThickness;
 headInnerHeight = headRadius - headWallThickness;
 headInsetMinThickness = 1.6;
+headCutHeight = headWallThickness / 2;
 
 panelAdditionalWallThickness = 0;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;

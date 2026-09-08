@@ -714,8 +714,30 @@ module headEtchings()
                 for (i=[0:1:7])
 
                     rotate([0,0,22.5 * i - (7.5 * (i%2))])
-                    cube([headRadius*2, 1, headRadius*3], center=true);
+                    cube([headRadius*2, etchLineThickness, headRadius*3], center=true);
             }
+
+            // orange ring below grey ring
+            // TODO: convert the orange ring to an inlay
+            translate([0,0,headY(deg=90-39)])
+            cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
+            translate([0,0,headY(deg=90-43)])
+            cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
+
+            // Bottom partial orange ring
+            // TODO: convert to intermittent orange inlays
+            translate([0,0,headY(deg=8)])
+            cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
+
+            // vertical etch lines in white
+            for (vertLineRotation=[88.5,91.5,148.5,151.5,238.5,241.5])
+                rotate([0,0,vertLineRotation])
+                translate([0,etchLineThickness/2,headY(deg=8)])
+                cube([headRadius*2, etchLineThickness, headY(deg=90-43)-headY(deg=8)]);
+
+            // TODO: add front eye etchings
+            // TODO: add horizontal panels
+            // TODO: add top etchings
         }
     }
 }

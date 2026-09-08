@@ -641,7 +641,7 @@ module headShell()
     }
 }
 
-module headSlice(h1=0, h2=1, a=45)
+module headWedge(h1=0, h2=1, a=45)
 {
 
     translate([0,0, headBaseHeight + headConeHeight])
@@ -678,7 +678,7 @@ module headDecorations(part = 0)
             intersection() {
                 headShell();
                 rotate([0,0,22.5 * i - (7.5 * (i%2))])
-                headSlice(h1=cos(35),h2=cos(22),a=(i%2==0 ? 15 : 30));
+                headWedge(h1=cos(35),h2=cos(22),a=(i%2==0 ? 15 : 30));
             }
     }
 }

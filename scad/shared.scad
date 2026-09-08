@@ -625,14 +625,14 @@ module headShell()
         // The base has a portion that is purely a cylinder
         translate([0,0, headConeHeight + headBaseHeight / 2])
         difference() {
-            cylinder(headBaseHeight, r=headRadius, $fn=$fnBody, center=true);
+            cylinder(headBaseHeight, r=headRadius+ insertionTolerance, $fn=$fnBody, center=true);
 
             cylinder(headBaseHeight + insertionTolerance*2, r=headRadius-headInsetMinThickness, $fn=$fnBody, center=true);
         }
 
         // ... followed by a cone that comes down to the base itself
         difference() {
-            cylinder(headConeHeight, r1=headConeRadius, r2=headRadius, $fn=$fnBody);
+            cylinder(headConeHeight, r1=headConeRadius + insertionTolerance, r2=headRadius + insertionTolerance, $fn=$fnBody);
 
             tmpoffset = (headRadius-headConeRadius)/headConeHeight * insertionTolerance;
             translate([0,0,-insertionTolerance])
@@ -683,32 +683,34 @@ module headDecorations(part = 0)
     }
 }
 
+module headEtchings()
+{
+    translate([0,0, headOffset])
+    intersection()
+    {
+        headShell();
+
+        {
+            for (ring = [0.15,0.95])
+            translate([
+                0, 0,
+                headConeHeight + headBaseHeight * ring])
+            translate([0, 0, headBaseHeight * step])
+            cube([headRadius*2, headRadius*2, headBaseHeight * 0.1], center=true);
+        }
+    }
+}
+
 module headDetail()
 {
-    *headShell();
-
     difference()
     {
         head();
 
+        headEtchings();
+
+        *
         headDecorations();
-
-        color("grey")
-        for (ring = [0.15,0.95])
-        translate([
-            0, 0,
-            headOffset + headConeHeight + headBaseHeight * ring])
-        {
-            // horizontal slice at the decorations so that we can print the inside cleanly
-            for (step = [0.05, -0.05])
-                translate([0, 0, headBaseHeight * step])
-                cube([headRadius*2, headRadius*2, insertionTolerance], center=true);
-
-            difference() {
-                cylinder(headBaseHeight * 0.1, headRadius+5, headRadius+5, center=true);
-                cylinder(headBaseHeight * 0.2, headRadius - wallThickness / 10, headRadius - wallThickness / 10, center=true);
-            }
-        }
     }
 }
 

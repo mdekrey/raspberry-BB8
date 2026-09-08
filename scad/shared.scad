@@ -666,21 +666,29 @@ module headWedge(h1=0, h2=1, a=45)
     );
 }
 
-module headDecorations(part = 0)
+headLowerRingTopY = -headBaseHeight * 0.0;
+headLowerRingBottomY = -headBaseHeight * 0.9;
+headTopGreyRingBottomDeg = 90-35;
+headTopGreyRingTopDeg = 90-22;
+headPartialOrangeRingTopDeg = 90-39;
+headPartialOrangeRingBottomDeg = 90-43;
+headBaseOrangeRingTopDeg = 8;
+
+module headInlays(part = 0)
 {
-    union()
     translate([0,0, headOffset])
+    intersection()
     {
-        for (i=[0:1:15])
-            if (part == 0 || part == i+1)
-            color("grey")
-            hull()
-            union()
-            intersection() {
-                headShell();
+        headShell();
+
+        union()
+        {
+            for (i=[0:1:15])
+                if (part == 0 || part == i+1)
+                color("grey")
                 rotate([0,0,22.5 * i - (7.5 * (i%2))])
                 headWedge(h1=cos(35),h2=cos(22),a=(i%2==0 ? 15 : 30));
-            }
+        }
     }
 }
 
@@ -705,9 +713,9 @@ module headEtchings()
                 cube([headRadius*2, headRadius*2, headBaseHeight * 0.1], center=true);
 
             // lines on grey top ring
-            greyRingH = headY(deg = 90-22) - headY(deg = 90-35);
+            greyRingH = headY(deg = headTopGreyRingTopDeg) - headY(deg = headTopGreyRingBottomDeg);
             intersection() {
-                translate([0,0,headY(deg=90-35)+greyRingH/2])
+                translate([0,0,headY(deg=headTopGreyRingBottomDeg)+greyRingH/2])
                 cube([headRadius*3, headRadius*3, greyRingH], center=true);
 
                 union()
@@ -719,21 +727,21 @@ module headEtchings()
 
             // orange ring below grey ring
             // TODO: convert the orange ring to an inlay
-            translate([0,0,headY(deg=90-39)])
+            translate([0,0,headY(deg=headPartialOrangeRingTopDeg)])
             cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
-            translate([0,0,headY(deg=90-43)])
+            translate([0,0,headY(deg=headPartialOrangeRingBottomDeg)])
             cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
 
             // Bottom partial orange ring
             // TODO: convert to intermittent orange inlays
-            translate([0,0,headY(deg=8)])
+            translate([0,0,headY(deg=headBaseOrangeRingTopDeg)])
             cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
 
             // vertical etch lines in white
             for (vertLineRotation=[88.5,91.5,148.5,151.5,238.5,241.5])
                 rotate([0,0,vertLineRotation])
                 translate([0,etchLineThickness/2,headY(deg=8)])
-                cube([headRadius*2, etchLineThickness, headY(deg=90-43)-headY(deg=8)]);
+                cube([headRadius*2, etchLineThickness, headY(deg=headPartialOrangeRingBottomDeg)-headY(deg=8)]);
 
             // TODO: add front eye etchings
             // TODO: add horizontal panels
@@ -771,11 +779,11 @@ module headCuts()
 {
     translate([0,0, headOffset])
     {
-        headHorizontalSlice(deg = 90-35);
-        headHorizontalSlice(deg = 90-22);
+        headHorizontalSlice(deg = headTopGreyRingBottomDeg);
+        headHorizontalSlice(deg = headTopGreyRingTopDeg);
 
-        headHorizontalSlice(y = -headBaseHeight * 0.0, isUp=true);
-        headHorizontalSlice(y = -headBaseHeight * 0.9);
+        headHorizontalSlice(y = headLowerRingTopY, isUp=true);
+        headHorizontalSlice(y = headLowerRingBottomY);
     }
 }
 

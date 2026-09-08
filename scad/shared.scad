@@ -683,11 +683,29 @@ module headInlays(part = 0)
 
         union()
         {
-            for (i=[0:1:15])
-                if (part == 0 || part == i+1)
-                color("grey")
-                rotate([0,0,22.5 * i - (7.5 * (i%2))])
-                headWedge(h1=cos(35),h2=cos(22),a=(i%2==0 ? 15 : 30));
+            // Orange top ring inlay. Splits in two parts for printing.
+            if(part == 0 || part == 1 || part == 2)
+                difference() {
+                    translate([-headRadius*1.5, -headRadius*(part == 0 ? 1.5 : part == 1 ? 0 : 3), headY(deg=headPartialOrangeRingBottomDeg)])
+                    cube([headRadius*3, headRadius*3, headY(deg=headPartialOrangeRingTopDeg)-headY(deg=headPartialOrangeRingBottomDeg)]);
+
+                    rotate([0,0,90])
+                    polyhedron(
+                        [
+                            [0,0,headY(deg=headPartialOrangeRingBottomDeg)],
+                            [tan(15)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
+                            [tan(-30)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
+                            [tan(-7.5)*headRadius,-headRadius,headY(deg=90)],
+                        ],
+                        faces = [
+                            [0,3,2],
+                            [2,3,1],
+                            [0,1,3],
+                            [0,2,1]
+                        ],
+                        convexity=1
+                    );
+                }
         }
     }
 }
@@ -724,13 +742,6 @@ module headEtchings()
                     rotate([0,0,22.5 * i - (7.5 * (i%2))])
                     cube([headRadius*2, etchLineThickness, headRadius*3], center=true);
             }
-
-            // orange ring below grey ring
-            // TODO: convert the orange ring to an inlay
-            translate([0,0,headY(deg=headPartialOrangeRingTopDeg)])
-            cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
-            translate([0,0,headY(deg=headPartialOrangeRingBottomDeg)])
-            cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
 
             // Bottom partial orange ring
             // TODO: convert to intermittent orange inlays
@@ -793,6 +804,7 @@ module headDetail()
     {
         head();
 
+        headInlays(0);
         headEtchings();
         headCuts();
     }

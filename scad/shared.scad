@@ -569,6 +569,7 @@ module panelCutout(panel) {
 module head()
 {
     translate([0,0, headOffset])
+    union()
     {
         translate([0,0, headBaseHeight + headConeHeight])
         intersection() {
@@ -576,12 +577,7 @@ module head()
                 sphere(headRadius, $fn=$fnBody);
 
                 // make the head hollow.
-                // start with a cylinder at the base so the bolts can be added
-                translate([0,0,-insertionTolerance])
-                cylinder(camlockBoltLength * 0.6, r=headInnerRadius, $fn=$fnBody);
-                // make the top half of the head hollow; keep it a cone so that it doesn't need supports
-                translate([0,0,-insertionTolerance * 2 + camlockBoltLength * 0.6])
-                cylinder(headInnerHeight + insertionTolerance - camlockBoltLength * 0.6, r1=headInnerRadius+insertionTolerance, r2=0, $fn=$fnBody);
+                sphere(r=headInnerRadius);
             }
             // Just the top half
             translate([-headRadius, -headRadius, 0])
@@ -611,11 +607,91 @@ module head()
     }
 }
 
+module headShell()
+{
+    {
+        translate([0,0, headBaseHeight + headConeHeight])
+        intersection() {
+            difference(){
+                sphere(headRadius + insertionTolerance, $fn=$fnBody);
+
+                sphere(headRadius - headInsetMinThickness, $fn=$fnBody);
+            }
+            // Just the top half
+            translate([-headRadius, -headRadius, 0])
+            cube([headRadius*2, headRadius*2, headRadius]);
+        }
+
+        // The base has a portion that is purely a cylinder
+        translate([0,0, headConeHeight + headBaseHeight / 2])
+        difference() {
+            cylinder(headBaseHeight, r=headRadius, $fn=$fnBody, center=true);
+
+            cylinder(headBaseHeight + insertionTolerance*2, r=headRadius-headInsetMinThickness, $fn=$fnBody, center=true);
+        }
+
+        // ... followed by a cone that comes down to the base itself
+        difference() {
+            cylinder(headConeHeight, r1=headConeRadius, r2=headRadius, $fn=$fnBody);
+
+            tmpoffset = (headRadius-headConeRadius)/headConeHeight * insertionTolerance;
+            translate([0,0,-insertionTolerance])
+            cylinder(headConeHeight+ insertionTolerance * 2, r1=headConeRadius-headInsetMinThickness - tmpoffset, r2=headRadius-headInsetMinThickness+tmpoffset, $fn=$fnBody);
+        }
+    }
+}
+
+module headSlice(h1=0, h2=1, a=45)
+{
+
+    translate([0,0, headBaseHeight + headConeHeight])
+    polyhedron(
+        [
+            [0,0,headRadius*h1],
+            [0,0,headRadius*h2],
+            [0,-headRadius,headRadius*h1],
+            [0,-headRadius,headRadius*h2],
+            [tan(a)*headRadius,-headRadius,headRadius*h1],
+            [tan(a)*headRadius,-headRadius,headRadius*h2]
+        ],
+        faces = [
+            [0,1,3,2],
+            [2,3,5,4],
+            [1,0,4,5],
+            [0,2,4],
+            [1,5,3]
+        ],
+        convexity=1
+    );
+}
+
+module headDecorations(part = 0)
+{
+    union()
+    translate([0,0, headOffset])
+    {
+        for (i=[0:1:15])
+            if (part == 0 || part == i+1)
+            color("grey")
+            hull()
+            union()
+            intersection() {
+                headShell();
+                rotate([0,0,22.5 * i - (7.5 * (i%2))])
+                headSlice(h1=cos(35),h2=cos(22),a=(i%2==0 ? 15 : 30));
+            }
+    }
+}
+
 module headDetail()
 {
+    *headShell();
+
     difference()
     {
         head();
+
+        headDecorations();
 
         color("grey")
         for (ring = [0.15,0.95])
@@ -632,19 +708,6 @@ module headDetail()
                 cylinder(headBaseHeight * 0.1, headRadius+5, headRadius+5, center=true);
                 cylinder(headBaseHeight * 0.2, headRadius - wallThickness / 10, headRadius - wallThickness / 10, center=true);
             }
-        }
-
-        count = 3;
-        for (outerBolt = [0 : (360/count) : 360]) {
-            rotate([0,0,outerBolt])
-            translate([0, headInnerRadius + camlockNutMaxDepth / 2, headOffset + headConeHeight + headBaseHeight])
-            rotate([90,0,0])
-            camLockSlot(boltLength=camlockBoltLength);
-
-            rotate([0,0,outerBolt + (360/(count * 2))])
-            translate([0, headInnerRadius + camlockNutMaxDepth / 4, headOffset + headConeHeight])
-            rotate([90,0,0])
-            camLockSlot(boltLength=camlockBoltLength);
         }
     }
 }

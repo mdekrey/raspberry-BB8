@@ -34,12 +34,14 @@ panelDesignDepth = radius - cos(asin((panelRingInnerRadius * 0.92) / radius)) * 
 panelDesignRadius = wallThickness - 0.2 * millisPerInch;
 
 headRadius = radius * 295/506;
+headWallThickness = 1.6*3;
 headBaseHeight = 20 * headRadius / 147.5;
 headConeHeight = 20 * headRadius / 147.5;
 headConeRadius = 111.5 * headRadius / 147.5;
 headOffset = cos(asin(headConeRadius / radius)) * radius;
-headInnerRadius = (headConeRadius * 3 + headRadius) / 4 - wallThickness;
-headInnerHeight = headRadius - wallThickness;
+headInnerRadius = headRadius - headWallThickness;
+headInnerHeight = headRadius - headWallThickness;
+headInsetMinThickness = 1.6;
 
 panelAdditionalWallThickness = 0;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;

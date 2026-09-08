@@ -684,6 +684,10 @@ module headDecorations(part = 0)
     }
 }
 
+function headY(y=0, deg=0) =
+    (deg == 0 ? y : sin(deg) * headRadius)
+        + headConeHeight + headBaseHeight;
+
 module headEtchings()
 {
     translate([0,0, headOffset])
@@ -691,24 +695,37 @@ module headEtchings()
     {
         headShell();
 
+        union()
         {
+            // horizontal lines near base
             for (ring = [0.15,0.95])
-            translate([
-                0, 0,
-                headConeHeight + headBaseHeight * ring])
-            cube([headRadius*2, headRadius*2, headBaseHeight * 0.1], center=true);
+                translate([
+                    0, 0,
+                    headConeHeight + headBaseHeight * ring])
+                cube([headRadius*2, headRadius*2, headBaseHeight * 0.1], center=true);
+
+            // lines on grey top ring
+            greyRingH = headY(deg = 90-22) - headY(deg = 90-35);
+            intersection() {
+                translate([0,0,headY(deg=90-35)+greyRingH/2])
+                cube([headRadius*3, headRadius*3, greyRingH], center=true);
+
+                union()
+                for (i=[0:1:7])
+
+                    rotate([0,0,22.5 * i - (7.5 * (i%2))])
+                    cube([headRadius*2, 1, headRadius*3], center=true);
+            }
         }
     }
 }
 
 module headHorizontalSlice(y=0, deg=0, isUp=false)
 {
-    y = (deg == 0 ? y : sin(deg) * headRadius)
-        + headConeHeight + headBaseHeight;
+    y = headY(y=y, deg=deg);
     outerX = cos(deg) * headRadius;
     innerX = cos(asin(sin(deg) * headRadius / headInnerRadius)) * headInnerRadius;
     x = (outerX*2 + innerX*1) / 3;
-    echo(y=y, x=x);
     translate([0,0,y])
     {
         difference() {
@@ -732,7 +749,7 @@ module headCuts()
 {
     translate([0,0, headOffset])
     {
-        headHorizontalSlice(deg = 55);
+        headHorizontalSlice(deg = 90-35);
         headHorizontalSlice(deg = 90-22);
 
         headHorizontalSlice(y = -headBaseHeight * 0.0, isUp=true);
@@ -748,9 +765,6 @@ module headDetail()
 
         headEtchings();
         headCuts();
-
-        *
-        headDecorations();
     }
 }
 

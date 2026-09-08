@@ -43,6 +43,7 @@ headInnerRadius = headRadius - headWallThickness;
 headInnerHeight = headRadius - headWallThickness;
 headInsetMinThickness = 1.6;
 headCutHeight = headWallThickness / 2;
+etchLineThickness = 0.4;
 
 panelAdditionalWallThickness = 0;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;

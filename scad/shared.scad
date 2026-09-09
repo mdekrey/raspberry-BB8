@@ -709,7 +709,8 @@ module headInlays(part = 0)
                     );
                 }
 
-            #rotate([0,0,90])
+            color("orange")
+            rotate([0,0,90])
             if (part == 0 || part == 3) {
                 rotate([0,0,45+2])
                 headWedge(deg2=headBaseOrangeRingTopDeg, a=10);
@@ -800,7 +801,7 @@ module headEtchings()
 
             // add front eye etchings
             // TODO: consider https://github.com/alidaf/3D-Printing/blob/main/Curved%20SVG%20Images/Curved%20SVG%20Images.scad
-            #translate([0,0,headY()])
+            translate([0,0,headY()])
             rotate([0,0,96.5])
             scale([1.27,1,1])
             translate([-65*radius/253,0,0])
@@ -808,7 +809,7 @@ module headEtchings()
             linear_extrude(height = headRadius)
             offset(r=etchLineThickness/2)
             scale(headRadius/87)
-            import("head-eye-outline.svg", dpi=72);
+            import("head-eye-outline.svg", dpi=72, convexity=3);
 
             // TODO: add horizontal panels
             // TODO: add top etchings

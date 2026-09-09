@@ -1,0 +1,21 @@
+<svg viewBox="0 0 238 190" xmlns="http://www.w3.org/2000/svg">
+    <!-- <rect fill="red" width="238" height="190" /> -->
+    <path d="
+        M0,190
+        L0,60
+        A60,60 0,0,1 60,0
+        A80,60 0,0,1 140,60
+        H170
+        A68,70, 0,0,1 238,130
+        C238,140 233,150 233,160
+        V190" stroke="#000" fill="none" />
+    <path d="
+        M140,60
+        L130,65
+        A50,55 0,0,1 80,120
+        V190" stroke="#000" fill="none" />
+    <path d="
+        M80,125
+        H0" stroke="#000" fill="none" />
+
+</svg>

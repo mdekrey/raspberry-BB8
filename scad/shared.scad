@@ -695,9 +695,9 @@ module headInlays(part = 0)
                     polyhedron(
                         [
                             [0,0,headY(deg=headPartialOrangeRingBottomDeg)],
-                            [tan(15)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
-                            [tan(-30)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
-                            [tan(-7.5)*headRadius,-headRadius,headY(deg=90)],
+                            [tan(19.5)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
+                            [tan(-32.5)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
+                            [tan(-6.5)*headRadius,-headRadius,headY(deg=90)],
                         ],
                         faces = [
                             [0,3,2],
@@ -798,7 +798,18 @@ module headEtchings()
                 translate([0,etchLineThickness/2,headY(deg=8)])
                 cube([headRadius*2, etchLineThickness, headY(deg=headPartialOrangeRingBottomDeg)-headY(deg=8)]);
 
-            // TODO: add front eye etchings
+            // add front eye etchings
+            // TODO: consider https://github.com/alidaf/3D-Printing/blob/main/Curved%20SVG%20Images/Curved%20SVG%20Images.scad
+            #translate([0,0,headY()])
+            rotate([0,0,96.5])
+            scale([1.27,1,1])
+            translate([-65,0,0])
+            rotate([90,0,0])
+            linear_extrude(height = headRadius)
+            offset(r=etchLineThickness/2)
+            scale(headRadius/87)
+            import("head-eye-outline.svg", dpi=72);
+
             // TODO: add horizontal panels
             // TODO: add top etchings
         }

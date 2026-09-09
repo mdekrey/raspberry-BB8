@@ -642,8 +642,10 @@ module headShell()
     }
 }
 
-module headWedge(h1=0, h2=1, a=45)
+module headWedge(deg1=0, deg2=1, a=45)
 {
+    h1 = sin(deg1);
+    h2 = sin(deg2);
 
     translate([0,0, headBaseHeight + headConeHeight])
     polyhedron(
@@ -706,6 +708,53 @@ module headInlays(part = 0)
                         convexity=1
                     );
                 }
+
+            #rotate([0,0,90])
+            if (part == 0 || part == 3) {
+                rotate([0,0,45+2])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=10);
+                rotate([0,0,45+2+10+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
+                rotate([0,0,45+2+10+3+6+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
+                rotate([0,0,45+2+10+3+6+3+6+3])//78
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=27); // 105
+                rotate([0,0,105+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
+                rotate([0,0,105+3+6+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=24);
+
+                // lined up with the vertical slice near the back of the head
+                rotate([0,0,148.5])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=3);
+
+                rotate([0,0,148.5+3+6])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=24);
+                rotate([0,0,148.5+3+6+24+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
+                rotate([0,0,148.5+3+6+24+3+6+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=27);
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=15);
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
+
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4])
+                // This has the blue light on the sphero BB-8, which is the processor display (grid LCD as seen on R2-D2)
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=27);
+
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
+
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4+6+4])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=24);
+
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4+6+4+24+3])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=3);
+
+            }
         }
     }
 }
@@ -743,11 +792,6 @@ module headEtchings()
                     cube([headRadius*2, etchLineThickness, headRadius*3], center=true);
             }
 
-            // Bottom partial orange ring
-            // TODO: convert to intermittent orange inlays
-            translate([0,0,headY(deg=headBaseOrangeRingTopDeg)])
-            cube([headRadius*3, headRadius*3, etchLineThickness], center=true);
-
             // vertical etch lines in white
             for (vertLineRotation=[88.5,91.5,148.5,151.5,238.5,241.5])
                 rotate([0,0,vertLineRotation])
@@ -766,7 +810,7 @@ module headHorizontalSlice(y=0, deg=0, isUp=false)
     y = headY(y=y, deg=deg);
     outerX = cos(deg) * headRadius;
     innerX = cos(asin(sin(deg) * headRadius / headInnerRadius)) * headInnerRadius;
-    x = (outerX*2 + innerX*1) / 3;
+    x = (outerX*1 + innerX*2) / 3;
     translate([0,0,y])
     {
         difference() {
@@ -804,7 +848,7 @@ module headDetail()
     {
         head();
 
-        headInlays(0);
+        headInlays();
         headEtchings();
         headCuts();
     }

@@ -691,13 +691,15 @@ module headInlays(part = 0)
                     translate([-headRadius*1.5, -headRadius*(part == 0 ? 1.5 : part == 1 ? 0 : 3), headY(deg=headPartialOrangeRingBottomDeg)])
                     cube([headRadius*3, headRadius*3, headY(deg=headPartialOrangeRingTopDeg)-headY(deg=headPartialOrangeRingBottomDeg)]);
 
+                    leftDeg = -32.5;
+                    rightDeg = 24.5;
                     rotate([0,0,90])
                     polyhedron(
                         [
                             [0,0,headY(deg=headPartialOrangeRingBottomDeg)],
-                            [tan(19.5)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
-                            [tan(-32.5)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
-                            [tan(-6.5)*headRadius,-headRadius,headY(deg=90)],
+                            [tan(rightDeg)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
+                            [tan(leftDeg)*headRadius,-headRadius,headY(deg=headPartialOrangeRingBottomDeg)],
+                            [tan((leftDeg + rightDeg) / 2)*headRadius,-headRadius,headY(deg=90)],
                         ],
                         faces = [
                             [0,3,2],
@@ -757,6 +759,19 @@ module headInlays(part = 0)
                 rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4+6+4+24+3])
                 headWedge(deg2=headBaseOrangeRingTopDeg, a=3);
             }
+
+            // Little eye circle
+            if (part == 0 || part == 4)
+            color("black")
+            rotate([0,0,90+30])
+            translate([0,0,headY()])
+            rotate([90-16,0,0])
+            linear_extrude(height = headRadius)
+            difference() {
+                eyeCircleSize = 27.5 * radius / 253;
+                circle(eyeCircleSize);
+                circle(eyeCircleSize - etchLineThickness * 3);
+            };
         }
     }
 }
@@ -811,6 +826,17 @@ module headEtchings()
             offset(r=etchLineThickness/2)
             scale(headRadius/87)
             import("head-eye-outline.svg", dpi=72, convexity=3);
+
+            // front eye outline; used to attach the eye in place with glue
+            rotate([0,0,90])
+            translate([0,0,headY()])
+            rotate([90 - 34,0,0])
+            linear_extrude(height = headRadius)
+            difference() {
+                eyeCircleSize = 34 * radius / 253;
+                circle(eyeCircleSize);
+                circle(eyeCircleSize - etchLineThickness * 3);
+            };
 
             // TODO: add horizontal panels
             // TODO: add top etchings

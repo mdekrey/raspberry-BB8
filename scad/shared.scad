@@ -598,9 +598,7 @@ module head()
         difference() {
             cylinder(headConeHeight, headConeRadius, headRadius, $fn=$fnBody);
 
-            // And hollow out the cone, but end in a cylinder so we don't have a sharp edge
-            translate([0,0, headBaseHeight*0.2 - insertionTolerance])
-            cylinder(headBaseHeight*0.8 + insertionTolerance*2, headConeRadius - wallThickness, headInnerRadius, $fn=$fnBody);
+            // And hollow out the cone, but not completely, leaving enough to anchor robotics to it
             translate([0,0, - insertionTolerance])
             cylinder(headBaseHeight + insertionTolerance*2, r=headConeRadius - wallThickness, $fn=$fnBody);
         }

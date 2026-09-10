@@ -839,7 +839,43 @@ module headEtchings()
             };
 
             // TODO: add horizontal panels
-            // TODO: add top etchings
+
+            // top etchings
+            linear_extrude(height = headRadius*2)
+            rotate([0,0,7.5])
+            union() {
+                etchingOuter = cos(headTopGreyRingTopDeg+2) * headRadius;
+                etchingMid = cos(headTopGreyRingTopDeg+2+3) * headRadius;
+                etchingInner = cos(headTopGreyRingTopDeg+2+3+5) * headRadius;
+                topEtchingAngle=7.5;
+                difference()
+                {
+                    circle(etchingOuter);
+                    circle(etchingOuter - etchLineThickness);
+                }
+                difference() {
+                    union() {
+                        difference()
+                        {
+                            circle(etchingMid);
+                            circle(etchingMid - etchLineThickness);
+                        }
+                        difference()
+                        {
+                            circle(etchingInner);
+                            circle(etchingInner - etchLineThickness);
+                        }
+                    }
+                    for(i = [0:1:3])
+                        rotate([0,0,i*90])
+                        polygon(points = [[0,0],[cos(-topEtchingAngle)*etchingOuter,sin(-topEtchingAngle)*etchingOuter],[cos(topEtchingAngle)*etchingOuter,sin(topEtchingAngle)*etchingOuter]]);
+                }
+                for(i = [0:1:3])
+                for(delta = [-1,1])
+                    rotate([0,0,i*90 + delta*topEtchingAngle])
+                    translate([0, (etchingMid+etchingInner)/2])
+                    square([etchLineThickness, etchingMid-etchingInner], center=true);
+            };
         }
     }
 }

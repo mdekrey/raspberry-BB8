@@ -712,6 +712,8 @@ module headInlays(part = 0)
             color("orange")
             rotate([0,0,90])
             if (part == 0 || part == 3) {
+                rotate([0,0,45+2-5-5])
+                headWedge(deg2=headBaseOrangeRingTopDeg/2, a=5);
                 rotate([0,0,45+2])
                 headWedge(deg2=headBaseOrangeRingTopDeg, a=10);
                 rotate([0,0,45+2+10+3])
@@ -754,7 +756,6 @@ module headInlays(part = 0)
 
                 rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4+6+4+24+3])
                 headWedge(deg2=headBaseOrangeRingTopDeg, a=3);
-
             }
         }
     }

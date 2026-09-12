@@ -566,40 +566,81 @@ module panelCutout(panel) {
     }
 }
 
-module head()
+
+module headSlice(y=0, deg=0, isUp=false)
 {
-    translate([0,0, headOffset])
-    rotate_extrude(angle = 360, convexity = 2, $fn=$fnBody)
-    union()
-    {
-        translate([0, headBaseHeight + headConeHeight])
-        intersection() {
-            difference(){
-                circle(headRadius);
+    y = headY(y=y, deg=deg);
+    yAdj = - headBaseHeight - headConeHeight;
+    innerInsertion = (isUp ? 1 : -1) * insertionTolerance;
+    innerY = y + ((isUp ? 1 : -1) * headCutHeight);
+    outerY = y;
+    outerX = cos(asin((outerY + yAdj) / headRadius)) * headRadius;
+    innerX = cos(asin((innerY + yAdj) / headInnerRadius)) * headInnerRadius;
+    innerX2 = (outerX + innerX * 3) / 4;
+    outerX2 = (outerX * 3 + innerX) / 4;
+    xInsertion = insertionTolerance * cos(atan(abs(innerX2-outerX2)/headCutHeight)) / 2;
+    x = (outerX + innerX) / 2;
+    // %translate([0,y])
+    // square([headRadius, insertionTolerance]);
 
-                // make the head hollow.
-                circle(headInnerRadius);
-            }
-            // Just one quadrant
-            square(headRadius);
-        }
-
-        // The base has a portion that is purely a cylinder
-        color("white")
-        translate([headInnerRadius, headConeHeight])
-        square([headRadius-headInnerRadius, headBaseHeight]);
-
-        // ... followed by a cone that comes down to the base itself
-        polygon([
-            [headRadius, headConeHeight],
-            [headConeRadius - wallThickness, headConeHeight],
-            [headConeRadius - wallThickness, 0],
-            [headConeRadius, 0]
-        ]);
-    };
+    polygon([
+        [0, innerY + innerInsertion],
+        [innerX2 + xInsertion, innerY + innerInsertion],
+        [outerX2 + xInsertion, outerY],
+        [headRadius, outerY],
+        [headRadius, outerY - innerInsertion],
+        [outerX2 - xInsertion , outerY - innerInsertion],
+        [innerX2 - xInsertion, innerY],
+        [0, innerY],
+    ]);
 }
 
-module headShell()
+module head()
+{
+    coneInsideHeight = headConeHeight + headBaseHeight + headLowerRingBottomY + headCutHeight;
+
+    translate([0,0, headOffset])
+    rotate_extrude(angle = 360, convexity = 2, $fn=$fnBody)!
+    difference() {
+        union()
+        {
+            translate([0, headBaseHeight + headConeHeight])
+            intersection() {
+                difference(){
+                    circle(headRadius);
+
+                    // make the head hollow.
+                    circle(headInnerRadius);
+                }
+                // Just one quadrant
+                square(headRadius);
+            }
+
+            // The base has a portion that is purely a cylinder
+            color("white")
+            translate([headInnerRadius, headConeHeight])
+            square([headRadius-headInnerRadius, headBaseHeight]);
+
+            // ... followed by a cone that comes down to the base itself
+            polygon([
+                [headRadius, headConeHeight],
+                [headRadius, coneInsideHeight],
+                [headConeRadius - wallThickness, coneInsideHeight],
+                [headConeRadius - wallThickness, 0],
+                [headConeRadius, 0]
+            ]);
+        };
+
+        // cut lines
+        headSlice(deg = headTopGreyRingBottomDeg, isUp=false);
+        headSlice(deg = headTopGreyRingTopDeg, isUp=false);
+
+        headSlice(y = headLowerRingTopY, isUp=true);
+        headSlice(y = headLowerRingBottomY, isUp=true);
+    }
+}
+
+module headShell(depth)
 {
     render()
     {
@@ -608,7 +649,7 @@ module headShell()
             difference(){
                 sphere(headRadius + insertionTolerance, $fn=$fnBody);
 
-                sphere(headRadius - headInsetMinThickness, $fn=$fnBody);
+                sphere(headRadius - depth, $fn=$fnBody);
             }
             // Just the top half
             translate([-headRadius, -headRadius, 0])
@@ -673,7 +714,7 @@ module headInlays(part = 0)
     translate([0,0, headOffset])
     intersection()
     {
-        headShell();
+        headShell(headInsetMinThickness);
 
         union()
         {
@@ -777,7 +818,7 @@ module headEtchings()
     translate([0,0, headOffset])
     intersection()
     {
-        headShell();
+        headShell(etchDepth);
 
         union()
         {
@@ -872,52 +913,14 @@ module headEtchings()
     }
 }
 
-module headHorizontalSlice(y=0, deg=0, isUp=false)
-{
-    y = headY(y=y, deg=deg);
-    outerX = cos(deg) * headRadius;
-    innerX = cos(asin(sin(deg) * headRadius / headInnerRadius)) * headInnerRadius;
-    x = (outerX*1 + innerX*2) / 3;
-    translate([0,0,y])
-    {
-        difference() {
-            cube([headRadius*3, headRadius*3, insertionTolerance], center=true);
-            cylinder(y * 2, r=x - insertionTolerance, center=true);
-        }
-
-        translate([0,0, (isUp?1:-1) * (headCutHeight / 2)])
-        difference()
-        {
-            cylinder(insertionTolerance * 2 + headCutHeight, r=x, center=true);
-            cylinder(insertionTolerance * 4 + headCutHeight, r=x - insertionTolerance, center=true);
-        }
-
-        translate([0,0, (isUp?1:-1) * (headCutHeight + insertionTolerance)])
-        cylinder(insertionTolerance, r=x);
-    }
-}
-
-module headCuts()
-{
-    translate([0,0, headOffset])
-    {
-        headHorizontalSlice(deg = headTopGreyRingBottomDeg);
-        headHorizontalSlice(deg = headTopGreyRingTopDeg);
-
-        headHorizontalSlice(y = headLowerRingTopY, isUp=true);
-        headHorizontalSlice(y = headLowerRingBottomY);
-    }
-}
-
 module headDetail()
 {
     difference()
     {
         head();
 
-        // headInlays();
-        // headEtchings();
-        headCuts();
+        headInlays();
+        headEtchings();
     }
 }
 

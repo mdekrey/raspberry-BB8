@@ -41,9 +41,10 @@ headConeRadius = 111.5 * headRadius / 147.5;
 headOffset = cos(asin(headConeRadius / radius)) * radius;
 headInnerRadius = headRadius - headWallThickness;
 headInnerHeight = headRadius - headWallThickness;
-headInsetMinThickness = 1.6;
-headCutHeight = headWallThickness / 2;
-etchLineThickness = 1;
+headInsetMinThickness = min(headWallThickness / 2, headBaseHeight * 0.1) * 0.8;
+headCutHeight = min(headWallThickness / 2, headBaseHeight * 0.1);
+etchLineThickness = min(1, headCutHeight / 2);
+etchDepth = headInsetMinThickness / 2;
 
 panelAdditionalWallThickness = 0;
 panelInnerWall = radius - wallThickness - panelAdditionalWallThickness;

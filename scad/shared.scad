@@ -569,40 +569,34 @@ module panelCutout(panel) {
 module head()
 {
     translate([0,0, headOffset])
+    rotate_extrude(angle = 360, convexity = 2, $fn=$fnBody)
     union()
     {
-        translate([0,0, headBaseHeight + headConeHeight])
+        translate([0, headBaseHeight + headConeHeight])
         intersection() {
             difference(){
-                sphere(headRadius, $fn=$fnBody);
+                circle(headRadius);
 
                 // make the head hollow.
-                sphere(r=headInnerRadius);
+                circle(headInnerRadius);
             }
-            // Just the top half
-            translate([-headRadius, -headRadius, 0])
-            cube([headRadius*2, headRadius*2, headRadius]);
+            // Just one quadrant
+            square(headRadius);
         }
 
         // The base has a portion that is purely a cylinder
         color("white")
-        translate([0,0, headConeHeight])
-        difference() {
-            cylinder(headBaseHeight, headRadius, headRadius, $fn=$fnBody);
-
-            translate([0,0, - insertionTolerance])
-            cylinder(headBaseHeight + insertionTolerance*2, r=headInnerRadius, $fn=$fnBody);
-        }
+        translate([headInnerRadius, headConeHeight])
+        square([headRadius-headInnerRadius, headBaseHeight]);
 
         // ... followed by a cone that comes down to the base itself
-        difference() {
-            cylinder(headConeHeight, headConeRadius, headRadius, $fn=$fnBody);
-
-            // And hollow out the cone, but not completely, leaving enough to anchor robotics to it
-            translate([0,0, - insertionTolerance])
-            cylinder(headBaseHeight + insertionTolerance*2, r=headConeRadius - wallThickness, $fn=$fnBody);
-        }
-    }
+        polygon([
+            [headRadius, headConeHeight],
+            [headConeRadius - wallThickness, headConeHeight],
+            [headConeRadius - wallThickness, 0],
+            [headConeRadius, 0]
+        ]);
+    };
 }
 
 module headShell()
@@ -921,8 +915,8 @@ module headDetail()
     {
         head();
 
-        headInlays();
-        headEtchings();
+        // headInlays();
+        // headEtchings();
         headCuts();
     }
 }

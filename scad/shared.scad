@@ -600,7 +600,7 @@ module head()
     coneInsideHeight = headConeHeight + headBaseHeight + headLowerRingBottomY + headCutHeight;
 
     translate([0,0, headOffset])
-    rotate_extrude(angle = 360, convexity = 2, $fn=$fnBody)!
+    rotate_extrude(angle = 360, convexity = 2, $fn=$fnBody)
     difference() {
         union()
         {

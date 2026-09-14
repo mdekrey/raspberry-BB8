@@ -865,12 +865,11 @@ module headEtchings()
             // add front eye etchings
             // TODO: consider https://github.com/alidaf/3D-Printing/blob/main/Curved%20SVG%20Images/Curved%20SVG%20Images.scad
             headEyeOutlineWidth = 360;
-            echo(etchLineThickness, headEyeOutlineWidth/72*millisPerInch/127, (etchLineThickness - headEyeOutlineWidth/72*millisPerInch/127) / 2);
             headEyeOutlineHeight = 140;
-            #translate([0,0,headY(deg=13)])
+            translate([0,0,headY(deg=13)])
             rotate([90,0,90])
             linear_extrude(height = headRadius)
-            offset((etchLineThickness - headEyeOutlineWidth/72*millisPerInch/127) / 2)
+            offset((etchLineThickness*1.5 - headEyeOutlineWidth/72*millisPerInch/127*radius/253) / 2)
             scale(headRadius/88.75)
             translate([-headEyeOutlineWidth/72*millisPerInch / 2, 0])
             union() {
@@ -886,7 +885,6 @@ module headEtchings()
             linear_extrude(height = headRadius)
             difference() {
                 eyeCircleSize = 1.5 * millisPerInch * radius / 253;
-                echo(eyeCircleSize * 2 / millisPerInch);
                 circle(eyeCircleSize);
                 circle(eyeCircleSize - etchLineThickness * 3);
             };

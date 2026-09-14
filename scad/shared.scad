@@ -725,8 +725,8 @@ module headInlays(part = 0)
                     translate([-headRadius*1.5, -headRadius*(part == 0 ? 1.5 : part == 1 ? 0 : 3), headY(deg=headPartialOrangeRingBottomDeg)])
                     cube([headRadius*3, headRadius*3, headY(deg=headPartialOrangeRingTopDeg)-headY(deg=headPartialOrangeRingBottomDeg)]);
 
-                    leftDeg = -32.5;
-                    rightDeg = 24.5;
+                    leftDeg = -30.5;
+                    rightDeg = 30.5;
                     rotate([0,0,90])
                     polyhedron(
                         [
@@ -782,15 +782,15 @@ module headInlays(part = 0)
 
                 rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4])
                 // This has the blue light on the sphero BB-8, which is the processor display (grid LCD as seen on R2-D2)
-                headWedge(deg2=headBaseOrangeRingTopDeg, a=27);
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=30);
 
-                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4])
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+30+4])
                 headWedge(deg2=headBaseOrangeRingTopDeg, a=6);
 
-                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4+6+4])
-                headWedge(deg2=headBaseOrangeRingTopDeg, a=24);
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+30+4+6+4])
+                headWedge(deg2=headBaseOrangeRingTopDeg, a=27);
 
-                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+27+4+6+4+24+3])
+                rotate([0,0,148.5+3+6+24+3+6+3+27+4+6+3+15+4+6+4+30+4+6+4+27+4])
                 headWedge(deg2=headBaseOrangeRingTopDeg, a=3);
             }
 
@@ -849,25 +849,44 @@ module headEtchings()
                 translate([0,etchLineThickness/2,headY(deg=8)])
                 cube([headRadius*2, etchLineThickness, headY(deg=headPartialOrangeRingBottomDeg)-headY(deg=8)]);
 
+            // square under large eye
+            rotate([0,0,340])
+            translate([0,etchLineThickness/2,headY(deg=8)])
+            cube([headRadius*2, etchLineThickness, headY(deg=13)-headY(deg=8)]);
+            rotate([0,0,3])
+            translate([0,etchLineThickness/2,headY()])
+            cube([headRadius*2, etchLineThickness, headY(deg=13)-headY()]);
+
+            rotate([0,0,45+2-0.125])
+            translate([0,etchLineThickness/2,headY(deg=8)])
+            cube([headRadius*2, etchLineThickness, headY(deg=13)-headY(deg=8)]);
+
+
             // add front eye etchings
             // TODO: consider https://github.com/alidaf/3D-Printing/blob/main/Curved%20SVG%20Images/Curved%20SVG%20Images.scad
-            translate([0,0,headY()])
-            rotate([0,0,90])
-            translate([-65*radius/253,0,0])
-            scale([1.235,1,1])
-            rotate([90,0,0])
+            headEyeOutlineWidth = 360;
+            echo(etchLineThickness, headEyeOutlineWidth/72*millisPerInch/127, (etchLineThickness - headEyeOutlineWidth/72*millisPerInch/127) / 2);
+            headEyeOutlineHeight = 140;
+            #translate([0,0,headY(deg=13)])
+            rotate([90,0,90])
             linear_extrude(height = headRadius)
-            offset(r=etchLineThickness/2)
-            scale(headRadius/87)
-            import("head-eye-outline.svg", dpi=72, convexity=3);
+            offset((etchLineThickness - headEyeOutlineWidth/72*millisPerInch/127) / 2)
+            scale(headRadius/88.75)
+            translate([-headEyeOutlineWidth/72*millisPerInch / 2, 0])
+            union() {
+                // SVG is units/dpi*millisPerInch for dimensions
+                import("head-eye-outline.svg", dpi=72, convexity=3);
+                // square([headEyeOutlineWidth/72*millisPerInch,headEyeOutlineHeight/72*millisPerInch]);
+            }
 
             // front eye outline; used to attach the eye in place with glue
             rotate([0,0,90])
             translate([0,0,headY()])
-            rotate([90 - 34,0,0])
+            rotate([90 - 32,0,0])
             linear_extrude(height = headRadius)
             difference() {
-                eyeCircleSize = 34 * radius / 253;
+                eyeCircleSize = 1.5 * millisPerInch * radius / 253;
+                echo(eyeCircleSize * 2 / millisPerInch);
                 circle(eyeCircleSize);
                 circle(eyeCircleSize - etchLineThickness * 3);
             };

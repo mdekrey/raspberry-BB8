@@ -1,4 +1,5 @@
 include <lib/computed.scad>;
+include <components/ruthex-threaded-inserts.scad>;
 
 module bodySphere(additionalWallThickness = 0) {
     difference() {
@@ -921,6 +922,13 @@ module headDetail()
 
         headInlays();
         headEtchings();
+
+        for (i = [0 : 60 : 360]) {
+            rotate([0,0, i])
+            translate([0, headConeRadius - wallThickness - insertionTolerance, headOffset + headConeHeight/2])
+            rotate([-90,0,0])
+            ruthexM4InsertHole();
+        }
     }
 }
 

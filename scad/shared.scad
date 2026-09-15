@@ -709,6 +709,9 @@ headTopGreyRingTopDeg = 90-22;
 headPartialOrangeRingTopDeg = 90-39;
 headPartialOrangeRingBottomDeg = 90-43;
 headBaseOrangeRingTopDeg = 8;
+smallEyeCircleRadius = 27.5 * radius / 253;
+largeEyeCircleRadius = 1.5 * millisPerInch * radius / 253;
+headSpeakerHoleInnerRadius = largeEyeCircleRadius * 0.2;
 
 module headInlays(part = 0)
 {
@@ -802,9 +805,8 @@ module headInlays(part = 0)
             rotate([90-16,0,0])
             linear_extrude(height = headRadius)
             difference() {
-                eyeCircleSize = 27.5 * radius / 253;
-                circle(eyeCircleSize);
-                circle(eyeCircleSize - etchLineThickness * 3);
+                circle(smallEyeCircleRadius);
+                circle(smallEyeCircleRadius - etchLineThickness * 3);
             };
         }
     }
@@ -884,9 +886,8 @@ module headEtchings()
             rotate([90 - 32,0,0])
             linear_extrude(height = headRadius)
             difference() {
-                eyeCircleSize = 1.5 * millisPerInch * radius / 253;
-                circle(eyeCircleSize);
-                circle(eyeCircleSize - etchLineThickness * 3);
+                circle(largeEyeCircleRadius);
+                circle(largeEyeCircleRadius - etchLineThickness * 3);
             };
 
             // TODO: add horizontal panels
@@ -931,6 +932,19 @@ module headEtchings()
     }
 }
 
+module headSpeakerHole()
+{
+    rotate([0,0,-3.5])
+    translate([headRadius * cos(6), 0, headOffset])
+    translate([0,0, headY(deg=6.5)])
+    rotate([0,90-6+180,0])
+    union() {
+        cylinder(r=headSpeakerHoleInnerRadius,h=headWallThickness);
+        cylinder(r1=headSpeakerHoleInnerRadius*1.25, r2=headSpeakerHoleInnerRadius,h=headSpeakerHoleInnerRadius * 0.25);
+    }
+
+}
+
 module headDetail()
 {
     difference()
@@ -939,6 +953,8 @@ module headDetail()
 
         headInlays();
         headEtchings();
+
+        headSpeakerHole();
 
         for (i = [0 : 60 : 360]) {
             rotate([0,0, i])

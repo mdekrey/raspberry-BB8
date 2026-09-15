@@ -725,8 +725,8 @@ module headInlays(part = 0)
                     translate([-headRadius*1.5, -headRadius*(part == 0 ? 1.5 : part == 1 ? 0 : 3), headY(deg=headPartialOrangeRingBottomDeg)])
                     cube([headRadius*3, headRadius*3, headY(deg=headPartialOrangeRingTopDeg)-headY(deg=headPartialOrangeRingBottomDeg)]);
 
-                    leftDeg = -30.5;
-                    rightDeg = 30.5;
+                    leftDeg = -25.5;
+                    rightDeg = 25.5;
                     rotate([0,0,90])
                     polyhedron(
                         [

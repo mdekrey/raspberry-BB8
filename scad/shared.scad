@@ -498,8 +498,8 @@ module camLockSlot(boltLength=camlockBoltLength) {
 module biscuitSlot() {
     translate([0,0,-biscuitSlotDepth])
     cube([
-        biscuitWidth + insertionTolerance,
-        biscuitLength + insertionTolerance,
+        biscuitWidth + biscuitRadius + insertionTolerance * 2,
+        biscuitLength * 1.05 + biscuitRadius + insertionTolerance * 2,
         biscuitThickness + insertionTolerance
     ], center = true);
 }

@@ -1,4 +1,7 @@
 include <my-bb8-config.scad>;
+include <components/biscuit/config.scad>;
+include <components/biscuit/biscuit.scad>;
+include <components/biscuit/slot.scad>;
 
 blockSize = 20;
 wallThickness=5;
@@ -19,7 +22,7 @@ difference()
     ]);
 
     {
-        %camLockSlot();
+        %camLockSlot(boltLength=camlockBoltLength);
         biscuitSlot();
     }
 }

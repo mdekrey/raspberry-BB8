@@ -4,3 +4,6 @@ obj
 
 *.user
 *.lock.json
+
+*.stl
+*.3mf

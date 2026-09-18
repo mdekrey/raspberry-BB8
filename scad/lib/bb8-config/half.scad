@@ -1,7 +1,6 @@
 
 smallPrintBed = false;
 
-millisPerInch = 25.4;
 radius = 253/2;
 wallThickness = 0.5 * millisPerInch;
 camlockNutRadius = 2.6;

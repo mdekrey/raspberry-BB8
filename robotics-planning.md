@@ -12,3 +12,14 @@
 - 3x motor bracket
 
 [versahub-stl]: https://www.thingiverse.com/thing:230394
+
+# Dimensions
+
+Wheel is 6" diameter, so 76.2mm radius.
+Body external is 253mm radius.
+Wall thickness TBD based on a few new tests, but at least 6.3mm.
+
+Spoke is ~170.5mm:
+    - more if the wheel is mounted above/below spoke, less if turned towards plate
+        - The wheel should be mounted below the spoke, so it may carry the weight of the battery and other robotics.
+    - this could mean a diamond-ish pattern would work well on a larger build plate, or does it need to be a metal engineered piece?

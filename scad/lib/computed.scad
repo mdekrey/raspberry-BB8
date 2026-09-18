@@ -1,3 +1,7 @@
+$fnBody = 360 / ($preview ? 5 : 2);
+$fn = 360/ ($preview ? 10 : 5);
+$fnDetail = $preview ? 15 : 60;
+
 panelDegrees = 35; // https://rimstar.org/science_electronics_projects/bb-8_dimensions.htm
 panelRadius = radius * sin(panelDegrees);
 insertionTolerance = 0.3;

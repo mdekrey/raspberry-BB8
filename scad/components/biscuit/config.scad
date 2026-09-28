@@ -1,5 +1,5 @@
 biscuitWidth = 8;
-biscuitLength = 25;
-biscuitThickness = 1;
+biscuitLength = 12;
+biscuitThickness = 2.4;
 biscuitRadius = 2;
-biscuitSlotDepth = 1.6;
+biscuitSlotDepth = biscuitThickness + 1;

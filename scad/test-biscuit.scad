@@ -5,7 +5,7 @@ include <components/biscuit/slot.scad>;
 
 blockSize = max(biscuitLength, biscuitWidth * 2);
 wallThickness=millisPerInch/4;
-insertionTolerance = 0;
+insertionTolerance = 0.05;
 
 translate([0,0,biscuitThickness / 2])
 biscuit();

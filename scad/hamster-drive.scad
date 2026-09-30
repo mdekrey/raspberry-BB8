@@ -12,7 +12,6 @@ robotFrameDowelOffset = [
 robotPlatformMotorDistance = radius-wallThickness-wheelEdgeCenter[0] + motorPlateSize[0]/2;
 robotPlatformPartWidth = -wheelEdgeCenter[1] + motorPlateSize[1]/2;
 echo("Print dimensions:", robotPlatformPartWidth * (1+sin(120)), robotPlatformMotorDistance);
-echo([-cos(120), sin(120)]);
 
 %intersection() {
     bodySphere();
@@ -27,8 +26,8 @@ rotate([0,0,wheelDeg])
 {
     difference() {
         translate([0,0,-wheelEdgeCenter[2]])
-        linear_extrude(height = robotPlatformThickness)
-        #polygon([
+        linear_extrude(height = robotPlatformThickness, convexity=2)
+        polygon([
             [0,0],
             [0,robotPlatformPartWidth],
             // arm of the platform that goes around the motor platform staying clear of the wheel
@@ -40,8 +39,5 @@ rotate([0,0,wheelDeg])
         ], convexity = 2);
 
         unprintedRobotParts();
-
-        // TODO: m3 inserts for motor holes
-        // TODO: holes to mount battery, servo, circuitry, etc.
     }
 }

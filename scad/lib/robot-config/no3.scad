@@ -1,7 +1,7 @@
 wheelRadius = 3*millisPerInch;
 wheelThickness = 23;
 
-platformExtra = 0.6; // enough for 3 layers of filament
+platformExtra = 1.6; // enough for 3 layers of filament above and below and a bit extra
 
 // A metal dowel runs through the middle of the 3d-printed frames for added
 // strength/weight distribution since multiple prints are pieced together due to

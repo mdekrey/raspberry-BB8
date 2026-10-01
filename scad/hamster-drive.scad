@@ -6,13 +6,6 @@ include <components/ruthex-threaded-inserts.scad>;
 include <components/battery/_.scad>;
 
 
-robotFrameDowelOffset = [
-    -radius * 0.2, // the amount it passes the center line of the robot
-    -wheelEdgeCenter[1], // runs directly over the motor mount
-    -wheelEdgeCenter[2] + 0.5*robotPlatformThickness // running directly through the platform itself
-];
-robotPlatformMotorDistance = radius-wallThickness-wheelEdgeCenter[0] + motorPlateSize[0]/2;
-robotPlatformPartWidth = -wheelEdgeCenter[1] + motorPlateSize[1]/2;
 echo("Print dimensions:", robotPlatformPartWidth * (1+sin(120)), robotPlatformMotorDistance);
 
 %render() intersection() {
@@ -21,14 +14,16 @@ echo("Print dimensions:", robotPlatformPartWidth * (1+sin(120)), robotPlatformMo
     cube([radius*2, radius*2, radius*2], center = true);
 }
 
-%render() unprintedRobotParts();
+%render() previewRobotParts();
 
+batteryPosition()
 batteryBracket();
 
 for(wheelDeg = $preview ? [0,120,240] : [0])
 rotate([0,0,wheelDeg])
 {
     difference() {
+        rotate([180,0,0])
         translate([0,0,-wheelEdgeCenter[2]])
         linear_extrude(height = robotPlatformThickness, convexity=2)
         polygon([

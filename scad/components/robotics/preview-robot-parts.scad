@@ -1,21 +1,20 @@
-include <motor-holes.scad>;
+include <motor-and-wheel.scad>;
 include <positioning.scad>;
 
-module unprintedRobotParts() {
+module previewRobotParts() {
     for(wheelDeg = [0,120,240])
     rotate([0,0,wheelDeg])
     {
         union(){
-            // m3 inserts for motor holes
+            // motors
             motorPosition()
-            motorHoles()
-            ruthexM4InsertHole(); // TODO: make sure this is supposed to be M4
+            motorAndWheel();
 
             // dowel for structure
             dowelPosition()
             cylinder(h = radius, r = 0.5*robotFrameDowelDiameter);;
 
-            // TODO: holes to mount battery, servo, circuitry, etc.
+            // TODO: servo, circuitry, etc.
         }
     }
 }
